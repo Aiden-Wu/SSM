@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xipin.est.db.dao.IDetailListDao">
+
+	<resultMap type="com.xipin.est.db.po.post.DetailListListPo" id="detailListListMap">
+		<result column="language" property="language" jdbcType="VARCHAR" />
+		<result column="submitDate" property="submitDate" jdbcType="TIMESTAMP" />
+		<result column="dispatchDate" property="dispatchDate" jdbcType="TIMESTAMP" />
+		<result column="estimateArrivceDate" property="estimateArrivceDate" jdbcType="TIMESTAMP" />
+		<result column="actualArrivceDate" property="actualArrivceDate" jdbcType="TIMESTAMP" />
+		<result column="airwayBillNo" property="airwayBillNo" jdbcType="VARCHAR" />
+		<result column="customerNo" property="customerNo" jdbcType="VARCHAR" />
+		<result column="customerName" property="customerName" jdbcType="VARCHAR" />
+		<result column="dispatchNo" property="dispatchNo" jdbcType="VARCHAR" />
+		<result column="serviceType" property="serviceType" jdbcType="VARCHAR" />
+		<result column="dispatchType" property="dispatchType" jdbcType="VARCHAR" />
+		<result column="estimateBagNum" property="estimateBagNum" jdbcType="DECIMAL" />
+		<result column="estimateTotalWeight" property="estimateTotalWeight" jdbcType="DECIMAL" />
+		<result column="actualBagNum" property="actualBagNum" jdbcType="DECIMAL" />
+		<result column="actualTotalWeight" property="actualTotalWeight" jdbcType="DECIMAL" />
+		<result column="statusTime" property="statusTime" jdbcType="TIMESTAMP" />
+		<result column="status" property="status" jdbcType="INTEGER" />
+		<result column="createPerson" property="createPerson" jdbcType="VARCHAR" />
+		<result column="ppiNo" property="ppiNo" jdbcType="VARCHAR" />
+		<result column="postofficeEnName" property="postofficeEnName" jdbcType="VARCHAR" />
+		<result column="truckingNo" property="truckingNo" jdbcType="VARCHAR" />
+		<result column="jgOrgId" property="jgOrgId" jdbcType="INTEGER" />
+		<result column="bmOrgId" property="bmOrgId" jdbcType="INTEGER" />
+		<result column="accountNo" property="accountNo" jdbcType="VARCHAR" />
+		<result column="isBroken" property="isBroken" jdbcType="INTEGER" />
+	</resultMap>
+	
+	<resultMap type="com.xipin.est.db.po.client.DetailDataListPo" id="detailDataListMap">
+		<result column="accountNo" property="accountNo" jdbcType="VARCHAR" />
+		<result column="truckingNo" property="truckingNo" jdbcType="VARCHAR" />
+		<result column="addDate" property="addDate" jdbcType="TIMESTAMP" />
+		<result column="dispatchDate" property="dispatchDate" jdbcType="TIMESTAMP" />
+		<result column="estimateArrivceDate" property="estimateArrivceDate" jdbcType="TIMESTAMP" />
+		<result column="actualArrivceDate" property="actualArrivceDate" jdbcType="TIMESTAMP" />
+		<result column="airwayBillNo" property="airwayBillNo" jdbcType="VARCHAR" />
+		<result column="dispatchNo" property="dispatchNo" jdbcType="VARCHAR" />
+		<result column="serviceType" property="serviceType" jdbcType="VARCHAR" />
+		<result column="dispatchType" property="dispatchType" jdbcType="VARCHAR" />
+		<result column="estimateBagNum" property="estimateBagNum" jdbcType="DECIMAL" />
+		<result column="estimateTotalWeight" property="estimateTotalWeight" jdbcType="DECIMAL" />
+		<result column="statusTime" property="statusTime" jdbcType="TIMESTAMP" />
+		<result column="status" property="status" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<sql id="condition">
+		<if test="beginAddTime != null and beginAddTime != ''">
+			submitDate >= #{beginAddTime, jdbcType=TIMESTAMP} and
+		</if>
+		<if test="endAddTime != null and endAddTime != ''">
+			submitDate &lt;= #{endAddTime, jdbcType=TIMESTAMP} and
+		</if>
+		<if test="dispatchNo != null and dispatchNo != ''">
+			dispatchNo = #{dispatchNo, jdbcType=VARCHAR} and
+		</if>
+		<if test="isFinish == null and serviceType != null and serviceType != ''">
+			serviceType = #{serviceType, jdbcType=VARCHAR} and
+		</if>
+		<if test="isFinish == null and dispatchType != null and serviceType != ''">
+			dispatchType = #{dispatchType, jdbcType=VARCHAR} and
+		</if>
+		<if test="noServiceType != null and noDispatchType != null">
+			!(serviceType = #{noServiceType} and dispatchType = #{noDispatchType} and (status = 7 or status = 8)) and
+		</if>
+		<if test="cJgOrgId != null and cJgOrgId != ''">
+			cJgOrgId = #{cJgOrgId, jdbcType=VARCHAR} and
+		</if>
+		<if test="pJgOrgId != null and pJgOrgId != ''">
+			jgOrgId = #{pJgOrgId, jdbcType=VARCHAR} and
+		</if>
+		<if test="status != null and status != ''">
+			status = #{status, jdbcType=INTEGER} and
+		</if>
+		<if test="postofficeEnName != null and postofficeEnName != ''">
+			postofficeEnName = #{postofficeEnName} and
+		</if>
+		<if test="statusList != null and statusList.size() > 0">
+            status in
+            <foreach collection="statusList" item="item" open="(" separator="," close=")">  
+                #{item}
+            </foreach> and
+		</if>
+		<if test="bmOrgIds != null and bmOrgIds.size() > 0">
+            bmOrgId in
+            <foreach collection="bmOrgIds" item="item" open="(" separator="," close=")">  
+                #{item}
+            </foreach> and
+		</if>
+		<if test="cBmOrgIds != null and cBmOrgIds.size() > 0">
+			cBmOrgId in
+			<foreach collection="cBmOrgIds" item="item" open="(" separator="," close=")">  
+                #{item}  
+            </foreach> and
+		</if>
+	</sql>
+
+	<select id="queryDetailListList" resultMap="detailListListMap" parameterType="com.xipin.est.db.bean.DetailListListBean" useCache="true" flushCache="false">
+		select 
+		#{language} AS language,
+		submitDate, dispatchDate, estimateArrivceDate, actualArrivceDate, airwayBillNo, customerName, customerNo, dispatchNo, serviceType, jgOrgId,isBroken,
+		dispatchType, estimateBagNum, estimateTotalWeight, actualBagNum, actualTotalWeight, statusTime, status, createPerson, postofficeEnName, truckingNo
+		from detail_list
+		<where>
+			<trim suffixOverrides=" and">
+				<include refid="condition" />
+			</trim>
+		</where>
+		<if test="from == 1">
+			order by statusTime desc
+		</if>
+		<if test="from != 1">
+			order by submitDate desc
+		</if>
+		<if test="beginIndex != null and pageSize != null">
+			limit #{beginIndex}, #{pageSize}
+		</if>
+	</select>
+	
+	<select id="queryDetailListCount" resultType="int" parameterType="com.xipin.est.db.bean.DetailListListBean" useCache="true" flushCache="false">
+		select count(dispatchNo)
+		from detail_list
+		<where>
+			<trim suffixOverrides=" and">
+				<include refid="condition" />
+			</trim>
+		</where>
+	</select>
+
+	
+	<select id="queryFirstDetailListNum" resultType="int" parameterType="com.xipin.est.db.bean.DetailListBean" useCache="true" flushCache="false">
+		select count(dispatchNo)
+		from detail_list
+		WHERE
+			1 = 1
+			<if test="beginAddTime != null and beginAddTime != ''">
+				and addDate >= #{beginAddTime, jdbcType=TIMESTAMP}
+			</if>
+			<if test="endAddTime != null and endAddTime != ''">
+				and addDate &lt;= #{endAddTime, jdbcType=TIMESTAMP}
+			</if>
+			<if test="dispatchNo != null and dispatchNo != ''">
+				and dispatchNo = #{dispatchNo, jdbcType=VARCHAR}
+			</if>
+			<if test="serviceType != null and serviceType != ''">
+				and serviceType = #{serviceType, jdbcType=VARCHAR}
+			</if>
+			<if test="countryCode != null and countryCode != ''">
+				and countryCode = #{countryCode, jdbcType=VARCHAR}
+			</if>
+			<if test="dispatchType != null and dispatchType != ''">
+				and dispatchType = #{dispatchType, jdbcType=VARCHAR}
+			</if>
+			<if test="status != null and status != ''">
+				and status = #{status, jdbcType=INTEGER}
+			</if>
+			<if test="postOfficeList != null">
+				and bmOrgId IN
+				<foreach collection="postOfficeList" item="item" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+			<if test="cbmList != null and cbmList.size() > 0">
+					and cBmOrgId IN
+					<foreach collection="cbmList" item="item" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+				</if>
+	</select>
+	
+	<select id="queryHistoryDetailListNum" resultType="int" parameterType="com.xipin.est.db.bean.DetailListBean" useCache="true" flushCache="false">
+		select count(dispatchNo)
+		from detail_list
+		WHERE status != 1
+			<if test="beginSubmitTime != null and beginSubmitTime != ''">
+				and submitDate >= #{beginSubmitTime, jdbcType=TIMESTAMP} 
+			</if>
+			<if test="endSubmitTime != null and endSubmitTime != ''">
+				and submitDate &lt;= #{endSubmitTime, jdbcType=TIMESTAMP} 
+			</if>
+			<if test="dispatchNo != null and dispatchNo != ''">
+				and dispatchNo = #{dispatchNo, jdbcType=VARCHAR} 
+			</if>
+			<if test="serviceType != null and serviceType != ''">
+				and serviceType = #{serviceType, jdbcType=VARCHAR} 
+			</if>
+			<if test="countryCode != null and countryCode != ''">
+				and countryCode = #{countryCode, jdbcType=VARCHAR}
+			</if>
+			<if test="dispatchType != null and dispatchType != ''">
+				and dispatchType = #{dispatchType, jdbcType=VARCHAR}
+			</if>
+			<if test="postOfficeList != null">
+				and bmOrgId IN
+				<foreach collection="postOfficeList" item="item" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+			<if test="cbmList != null and cbmList.size() > 0">
+					and cBmOrgId IN
+					<foreach collection="cbmList" item="item" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+				</if>
+	</select>
+	
+	<select id="getFirstDetailList" resultType="com.xipin.est.db.po.client.DetailDataListPo" parameterType="com.xipin.est.db.bean.DetailListBean" useCache="true" flushCache="false">
+		SELECT 
+			`postoffice` ,
+			  `accountNo` ,
+			  `transportLine` ,
+			  `ppiNo` ,
+			  `postofficeAddr` ,
+			  
+			  `serviceType` ,
+			  `airwayBillNo` ,
+			  `dispatchType` ,
+			  `truckingNo` ,
+			  `payMode` ,
+			  
+			  `estimateBagNum` ,
+			  `estimateTotalWeight` ,
+			  `actualBagNum` ,
+			  `actualTotalWeight` ,
+			  `dispatchDate` ,
+			  `estimateArrivceDate`,
+			  `actualArrivceDate` ,
+			  `dispatchNo` ,
+			  `customerName` ,
+			  `customerNo` ,
+			  `status` ,
+			  `statusTime` ,
+			  `countryCode` ,
+			  `createPerson` ,
+			  `addWho` ,
+			  `addDate` ,
+			  `updateWho` ,
+			  `updateDate` ,
+			  `jgOrgId` ,
+			  `bmOrgId` ,
+			  `cJgOrgId` ,
+			  `cBmOrgId` ,
+			  `postofficeEnName` 
+			
+		FROM detail_list
+		WHERE
+			1 =1 
+			<if test="beginAddTime != null and beginAddTime != ''">
+				and addDate >= #{beginAddTime, jdbcType=TIMESTAMP}
+			</if>
+			<if test="endAddTime != null and endAddTime != ''">
+				and addDate &lt;= #{endAddTime, jdbcType=TIMESTAMP}
+			</if>
+			<if test="dispatchNo != null and dispatchNo != ''">
+				and dispatchNo = #{dispatchNo, jdbcType=VARCHAR}
+			</if>
+			<if test="serviceType != null and serviceType != ''">
+				and serviceType = #{serviceType, jdbcType=VARCHAR}
+			</if>
+			<if test="countryCode != null and countryCode != ''">
+				and countryCode = #{countryCode, jdbcType=VARCHAR}
+			</if>
+			<if test="dispatchType != null and dispatchType != ''">
+				and dispatchType = #{dispatchType, jdbcType=VARCHAR}
+			</if>
+			<if test="postoffice != null and postoffice != ''">
+				and jgOrgId = #{postoffice}
+			</if>
+			<if test="status != null and status != ''">
+				and status = #{status, jdbcType=INTEGER}
+			</if>
+			<if test="postOfficeList != null and postOfficeList.size() > 0">
+				and bmOrgId IN
+				<foreach collection="postOfficeList" item="item" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+			<if test="cbmList != null and cbmList.size() > 0">
+					and cBmOrgId IN
+					<foreach collection="cbmList" item="item" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+				</if>
+			<if test="beginIndex != null and pageSize != null">
+				limit #{beginIndex}, #{pageSize}
+			</if>
+	</select>
+	
+	<select id="gethistoryDetailList" resultType="com.xipin.est.db.po.client.DetailDataListPo" parameterType="com.xipin.est.db.bean.DetailListBean" useCache="true" flushCache="false">
+		SELECT 
+			`postoffice` ,
+			  `accountNo` ,
+			  `transportLine` ,
+			  `ppiNo` ,
+			  `postofficeAddr` ,
+			  
+			  `serviceType` ,
+			  `airwayBillNo` ,
+			  `dispatchType` ,
+			  `truckingNo` ,
+			  `payMode` ,
+			  
+			  `estimateBagNum` ,
+			  `estimateTotalWeight` ,
+			  `actualBagNum` ,
+			  `actualTotalWeight` ,
+			  `dispatchDate` ,
+			  `estimateArrivceDate`,
+			  `actualArrivceDate` ,
+			  `dispatchNo` ,
+			  `customerName` ,
+			  `customerNo` ,
+			  `status` ,
+			  `statusTime` ,
+			  `countryCode` ,
+			  `createPerson` ,
+			  `addWho` ,
+			  `addDate` ,
+			  `updateWho` ,
+			  `updateDate` ,
+			  `jgOrgId` ,
+			  `bmOrgId` ,
+			  `cJgOrgId` ,
+			  `cBmOrgId` ,
+			  `postofficeEnName`,
+			  submitDate,
+			  isBroken
+			
+		FROM detail_list
+			WHERE status != 1
+				<if test="beginSubmitTime != null and beginSubmitTime != ''">
+					and submitDate >= #{beginSubmitTime, jdbcType=TIMESTAMP} 
+				</if>
+				<if test="endSubmitTime != null and endSubmitTime != ''">
+					and submitDate &lt;= #{endSubmitTime, jdbcType=TIMESTAMP} 
+				</if>
+				<if test="dispatchNo != null and dispatchNo != ''">
+					and dispatchNo = #{dispatchNo, jdbcType=VARCHAR} 
+				</if>
+				<if test="serviceType != null and serviceType != ''">
+					and serviceType = #{serviceType, jdbcType=VARCHAR} 
+				</if>
+				<if test="countryCode != null and countryCode != ''">
+				and countryCode = #{countryCode, jdbcType=VARCHAR}
+				</if>
+				<if test="dispatchType != null and dispatchType != ''">
+					and dispatchType = #{dispatchType, jdbcType=VARCHAR}
+				</if>
+				<if test="postoffice != null and postoffice != ''">
+					and jgOrgId = #{postoffice} 
+				</if>
+				<if test="postOfficeList != null and postOfficeList.size() > 0">
+					and bmOrgId IN
+					<foreach collection="postOfficeList" item="item" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+				</if>
+				<if test="cbmList != null and cbmList.size() > 0">
+					and cBmOrgId IN
+					<foreach collection="cbmList" item="item" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+				</if>
+				<if test="beginIndex != null and pageSize != null">
+					limit #{beginIndex}, #{pageSize}
+				</if>
+	</select>
+
+	<insert id="insertDetailList" parameterType="com.xipin.est.db.po.DetailListPo" flushCache="true">
+		INSERT INTO detail_list(
+		postoffice,accountNo,transportLine,ppiNo,postofficeAddr,
+		serviceType,airwayBillNo,dispatchType,truckingNo,truckingNoId,payMode,
+		estimateBagNum,estimateTotalWeight,actualBagNum,actualTotalWeight,dispatchDate,
+		estimateArrivceDate,actualArrivceDate,dispatchNo,customerName,customerNo,
+		status,countryCode,createPerson,addWho,addDate,jgOrgId,bmOrgId,updateDate,cJgOrgId,cBmOrgId,postofficeEnName
+		)VALUES(
+		#{postoffice,jdbcType=VARCHAR},#{accountNo,jdbcType=VARCHAR},#{transportLine,jdbcType=VARCHAR},#{ppiNo,jdbcType=VARCHAR},#{postofficeAddr,jdbcType=VARCHAR},
+		#{serviceType,jdbcType=VARCHAR},#{airwayBillNo,jdbcType=VARCHAR},#{dispatchType,jdbcType=VARCHAR},#{truckingNo,jdbcType=VARCHAR},#{truckingNoId},#{payMode,jdbcType=VARCHAR},
+		#{estimateBagNum,jdbcType=DECIMAL},#{estimateTotalWeight,jdbcType=DECIMAL},#{actualBagNum,jdbcType=DECIMAL},#{actualTotalWeight,jdbcType=DECIMAL},#{dispatchDate,jdbcType=TIMESTAMP},
+		#{estimateArrivceDate,jdbcType=TIMESTAMP},#{actualArrivceDate,jdbcType=TIMESTAMP},#{dispatchNo,jdbcType=VARCHAR},#{customerName,jdbcType=VARCHAR},#{customerNo,jdbcType=VARCHAR},
+		#{status,jdbcType=VARCHAR},#{countryCode,jdbcType=VARCHAR},#{createPerson,jdbcType=VARCHAR},#{addWho,jdbcType=VARCHAR},#{addDate,jdbcType=VARCHAR},#{jgOrgId},#{bmOrgId},#{updateDate},#{cJgOrgId},#{cBmOrgId},#{postofficeEnName}
+		)
+	</insert>
+<!-- 	<insert id="insertDetailList" parameterType="com.xipin.est.db.po.DetailListPo" flushCache="true">
+		INSERT INTO detail_list(
+		postoffice,accountNo,transportLine,ppiNo,postofficeAddr,
+		serviceType,airwayBillNo,dispatchType,truckingNo,payMode,
+		estimateBagNum,estimateTotalWeight,actualBagNum,actualTotalWeight,dispatchDate,
+		estimateArrivceDate,actualArrivceDate,dispatchNo,customerName,customerNo,
+		status,countryCode,createPerson,addWho,addDate
+		)VALUES(
+		#{postoffice,jdbcType=VARCHAR},#{accountNo,jdbcType=VARCHAR},#{transportLine,jdbcType=VARCHAR},#{ppiNo,jdbcType=VARCHAR},#{postofficeAddr,jdbcType=VARCHAR},
+		#{serviceType,jdbcType=VARCHAR},#{airwayBillNo,jdbcType=VARCHAR},#{dispatchType,jdbcType=VARCHAR},#{truckingNo,jdbcType=VARCHAR},#{payMode,jdbcType=VARCHAR},
+		#{estimateBagNum,jdbcType=DECIMAL},#{estimateTotalWeight,jdbcType=DECIMAL},#{actualBagNum,jdbcType=DECIMAL},#{actualTotalWeight,jdbcType=DECIMAL},#{dispatchDate,jdbcType=TIMESTAMP},
+		#{estimateArrivceDate,jdbcType=TIMESTAMP},#{actualArrivceDate,jdbcType=TIMESTAMP},#{dispatchNo,jdbcType=VARCHAR},#{customerName,jdbcType=VARCHAR},#{customerNo,jdbcType=VARCHAR},
+		#{status,jdbcType=VARCHAR},#{countryCode,jdbcType=VARCHAR},#{addWho,jdbcType=VARCHAR},#{addWho,jdbcType=VARCHAR},#{addDate,jdbcType=VARCHAR}
+		)
+	</insert> -->
+	
+	<delete id="deleteDetailList" parameterType="String" flushCache="true">
+		delete from detail_list
+		where dispatchNo = #{dispatchNo}
+	</delete>
+	
+	<update id="updateDetailStatus" parameterType="com.xipin.est.db.bean.UpdateDetailListBean" flushCache="true">
+		update detail_list
+		set 
+			status = #{status, jdbcType=TIMESTAMP}, 
+			statusTime = #{statusTime, jdbcType=TIMESTAMP}
+		where 
+			dispatchNo = #{dispatchNo, jdbcType=VARCHAR}
+			<if test="postofficeEnName != null and postofficeEnName != '' ">
+				and postofficeEnName = #{postofficeEnName}
+			</if>
+	</update>
+	
+	<update id="submitDetailListForDate" parameterType="com.xipin.est.db.bean.UpdateDetailListBean" flushCache="true">
+		update detail_list
+		set 
+			status = #{status, jdbcType=TIMESTAMP}, 
+			statusTime = #{statusTime, jdbcType=TIMESTAMP},
+			submitDate = #{submitDate, jdbcType=TIMESTAMP}
+		where 
+			dispatchNo = #{dispatchNo, jdbcType=VARCHAR}
+			<if test="postofficeEnName != null and postofficeEnName != '' ">
+				and postofficeEnName = #{postofficeEnName}
+			</if>
+	</update>
+	
+	<update id="detailListInputWeight" parameterType="com.xipin.est.db.bean.DetailListInputWeightBean" flushCache="true">
+		update detail_list
+		set status = #{status, jdbcType=TIMESTAMP}, statusTime = #{statusTime, jdbcType=TIMESTAMP}, isBroken = #{isBroken},
+		actualBagNum = #{actualBagNum, jdbcType=DECIMAL}, actualTotalWeight = #{actualTotalWeight, jdbcType=DECIMAL}
+		where dispatchNo = #{dispatchNo, jdbcType=VARCHAR} and postofficeEnName = #{postofficeEnName}
+	</update>
+	
+	<update id="submitDetailList" parameterType="String" flushCache="true">
+		UPDATE detail_list
+		SET 
+			status = '3',
+			statusTime = NOW()
+		WHERE dispatchNo = #{dispatchNo}
+	</update>
+	
+	
+	<select id="getDetailListByDispatchNoList" resultMap="detailListListMap">
+		SELECT #{language} as language, accountNo,truckingNo, dispatchDate, estimateArrivceDate, actualArrivceDate, airwayBillNo, customerName, dispatchNo, serviceType,
+		dispatchType, estimateBagNum, estimateTotalWeight, actualBagNum, actualTotalWeight, statusTime, status, createPerson,addDate,
+		postofficeEnName,submitDate, jgOrgId, bmOrgId
+		FROM 
+		detail_list
+		WHERE dispatchNo IN
+		<foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+		
+	</select>
+	
+	<select id="getDetailListByDispatchNo" resultMap="detailDataListMap" parameterType="map" useCache="true" flushCache="false">
+		SELECT 
+		dispatchNo
+		FROM detail_list
+		<where>
+			dispatchNo = #{dispatchNo, jdbcType=VARCHAR}
+			AND
+			(status = '5' OR status = '7' OR status = '8' OR status = '9' OR status = '11')
+		</where>
+	</select>
+	
+	<select id="queryDispatchNoForNotCanDelete" parameterType="com.xipin.est.db.bean.DetailListUpdateBean" resultType="String">
+		SELECT 
+		dispatchNo
+		FROM detail_list
+		<where>
+			dispatchNo = #{dispatchNo, jdbcType=VARCHAR} 
+			AND postofficeEnName = #{postofficeEnName,jdbcType=VARCHAR}
+			AND (status = '5' OR status = '7' OR status = '8' OR status = '9' OR status = '11')
+		</where>
+	</select>
+	
+	<select id="queryDetailListByDispatchNo" resultMap="detailListListMap" useCache="true">
+		select #{language} AS language, submitDate, dispatchDate, estimateArrivceDate, actualArrivceDate, airwayBillNo, customerName, customerNo, dispatchNo, serviceType, jgOrgId,
+		dispatchType, estimateBagNum, estimateTotalWeight, actualBagNum, actualTotalWeight, statusTime, status, createPerson, postofficeEnName, truckingNo, ppiNo
+		from detail_list
+		where dispatchNo = #{dispatchNo, jdbcType=VARCHAR}
+	</select>
+	
+	<update id="updateTruckingNo" parameterType="com.xipin.est.db.bean.DetailListUpdateBean" flushCache="true">
+		update detail_list
+		set airwayBillNo = #{airwayBillNo}, truckingNo = #{truckingNo}, truckingNoId = #{truckingNoId}
+		where dispatchNo = #{dispatchNo} and postofficeEnName = #{postofficeEnName}
+	</update>
+</mapper>

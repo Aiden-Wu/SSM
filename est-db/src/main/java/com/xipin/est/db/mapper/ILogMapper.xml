@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xipin.est.db.log.dao.ILogDao">
+
+	<resultMap type="com.xipin.est.db.po.log.LogPo" id="logMap">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="time" property="time" jdbcType="TIMESTAMP" />
+		<result column="description" property="description" jdbcType="VARCHAR" />
+		<result column="operatorId" property="operatorId" jdbcType="BIGINT" />
+		<result column="operatorName" property="operatorName" jdbcType="VARCHAR" />
+		<result column="operatorType" property="operatorType" jdbcType="INTEGER" />
+		<result column="objectId" property="objectId" jdbcType="VARCHAR" />
+		<result column="objectType" property="objectType" jdbcType="INTEGER" />
+		<result column="before" property="before" jdbcType="VARCHAR" />
+		<result column="after" property="after" jdbcType="VARCHAR" />
+		<result column="ip" property="ip" jdbcType="VARCHAR" />
+		<result column="isSuccess" property="isSuccess" jdbcType="INTEGER" />
+		<result column="failReason" property="failReason" jdbcType="VARCHAR" />
+		<result column="type" property="type" jdbcType="INTEGER" />
+	</resultMap>
+	
+	<sql id="condition">
+		<if test="type != null and type != ''">
+			type = #{type} and
+		</if>
+		<if test="operatorType != null and operatorType != ''">
+			operatorType = #{operatorType} and
+		</if>
+		<if test="beginTime != null and beginTime != ''">
+			time >= #{beginTime} and
+		</if>
+		<if test="endTime != null and endTime != ''">
+			time &lt;= #{endTime} and
+		</if>
+		<if test="operatorName != null and operatorName != ''">
+			operatorName like concat(#{operatorName}, '%') and
+		</if>
+		<if test="ip != null and ip != ''">
+			ip like concat(#{ip}, '%') and
+		</if>
+	</sql>
+	
+	<insert id="insert" parameterType="com.xipin.est.db.bean.log.LogBean" flushCache="true" useGeneratedKeys="true" keyProperty="id">
+		insert into log(time, description, operatorId, operatorName, operatorType, objectId, 
+		objectType, `before`, `after`, ip, isSuccess, failReason, type)
+		values(#{time}, #{description}, #{operatorId}, #{operatorName}, #{operatorType}, #{objectId}, 
+		#{objectType}, #{before}, #{after}, #{ip}, #{isSuccess}, #{failReason}, #{type})
+	</insert>
+	
+	<select id="queryLogCount" parameterType="com.xipin.est.db.bean.log.LogListBean" resultType="int" useCache="true" flushCache="false">
+		select count(id) from log
+		<where>
+			<trim suffixOverrides=" and">
+				<include refid="condition"/>
+			</trim>
+		</where>
+	</select>
+	
+	<select id="queryLogList" parameterType="com.xipin.est.db.bean.log.LogListBean" resultMap="logMap" useCache="true" flushCache="false">
+		select id, time, description, operatorId, operatorName, operatorType, objectId, objectType, ip, isSuccess, failReason, type
+		from log
+		<where>
+			<trim suffixOverrides=" and">
+				<include refid="condition"/>
+			</trim>
+		</where>
+		order by time desc
+		<if test="beginIndex != null and pageSize != null">
+			limit #{beginIndex}, #{pageSize}
+		</if>
+	</select>
+	
+</mapper>

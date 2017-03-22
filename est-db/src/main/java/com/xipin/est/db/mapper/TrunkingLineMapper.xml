@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xipin.est.db.dao.TrunkingLineDao" >
+	
+	<resultMap type="com.xipin.est.db.po.manager.TrunkingLinePo" id="trunkingLineMap">
+		<result column="id" property="id" jdbcType="BIGINT" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="price" property="price" jdbcType="DECIMAL" />
+		<result column="no" property="no" jdbcType="VARCHAR" />
+		<result column="start" property="start" jdbcType="VARCHAR" />
+		<result column="end" property="end" jdbcType="VARCHAR" />
+		<result column="isTransport" property="isTransport" jdbcType="VARCHAR" />
+		<result column="trunkStatus" property="trunkStatus" jdbcType="VARCHAR" />
+		<result column="createName" property="createName" jdbcType="VARCHAR" />
+		<result column="creater" property="creater" jdbcType="BIGINT" />
+		<result column="createDate" property="createDate" jdbcType="TIMESTAMP" />
+		<result column="updateDate" property="updateDate" jdbcType="TIMESTAMP" />
+		<result column="departmentName" property="departmentName" jdbcType="VARCHAR" />
+		<result column="departmentID" property="departmentID" jdbcType="BIGINT" />
+	</resultMap>
+	
+	<select id="getTrunkingLineList" parameterType="com.xipin.est.db.bean.TrunkingLineBean" 
+	resultMap="trunkingLineMap" useCache="true" flushCache="false">
+		SELECT * FROM trunking_line
+		WHERE departmentID = #{departmentID}
+	</select>
+	
+	<select id="queryTrunkingLineListNum" parameterType="com.xipin.est.db.bean.TrunkingLineBean" resultType="int" useCache="true" flushCache="false">
+		SELECT COUNT(id) FROM trunking_line
+	</select>
+	
+	<select id="getTrunkingLineListByUserId" parameterType="int" resultMap="trunkingLineMap" useCache="true" flushCache="false">
+		SELECT t.*
+		FROM 
+		user u 
+		INNER JOIN org o ON o.id = u.orgId AND o.`status` = 1
+		INNER JOIN trunking_line t ON t.departmentID = u.orgId
+		WHERE 
+		u.id = #{userID}
+	</select>
+	
+	<select id="getTrunkingLineListByDepartmentID" parameterType="int" resultMap="trunkingLineMap" useCache="true" flushCache="false">
+		SELECT id,name FROM trunking_line
+		WHERE departmentID = #{departmentID}
+	</select>
+	
+	<insert id="addTrunkingLine" parameterType="com.xipin.est.db.bean.TrunkingLineBean" flushCache="true" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO 
+		trunking_line(
+			name,
+			price,
+			no,
+			start,
+			end,
+			isTransport,
+			trunkStatus,
+			createName,
+			creater,
+			createDate,
+			updateDate,
+			departmentName,
+			departmentID
+		)VALUES(
+			#{name},
+			#{price},
+			#{no},
+			#{start},
+			#{end},
+			#{isTransport},
+			#{trunkStatus},
+			#{createName},
+			#{creater},
+			#{createDate},
+			#{updateDate},
+			#{departmentName},
+			#{departmentID}
+		)
+	</insert>
+	
+	<update id="updateTrunkingLine" parameterType="com.xipin.est.db.bean.TrunkingLineBean" flushCache="true">
+		UPDATE trunking_line
+			<set>
+				<if test="name != null">
+					name = #{name},
+				</if>
+				<if test="price != null">
+					price = #{price},
+				</if>
+				<if test="no != null">
+					no = #{no},
+				</if>
+				<if test="start != null">
+					start = #{start},
+				</if>
+				<if test="end != null">
+					end = #{end},
+				</if>
+				<if test="isTransport != null">
+					isTransport = #{isTransport},
+				</if>
+				
+				<if test="trunkStatus != null">
+					trunkStatus = #{trunkStatus},
+				</if>
+				<if test="createName != null">
+					createName = #{createName},
+				</if>
+				<if test="creater != null">
+					creater = #{creater},
+				</if>
+				<if test="updateDate != null">
+					updateDate = #{updateDate},
+				</if>
+				<if test="departmentName != null">
+					departmentName = #{departmentName},
+				</if>
+				<if test="departmentID != null">
+					departmentID = #{departmentID},
+				</if>
+			</set>
+		WHERE
+			id = #{id}
+	</update>
+	
+	<delete id="deleteTrunkingLine" parameterType="java.lang.Long">
+		DELETE FROM trunking_line
+		WHERE id = #{id}
+	</delete>
+	
+</mapper>

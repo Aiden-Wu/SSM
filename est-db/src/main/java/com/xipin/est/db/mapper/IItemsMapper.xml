@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xipin.est.db.dao.IItemsDao">
+
+	<insert id="insertItemBatch" parameterType="java.util.List" flushCache="true">
+		INSERT INTO items(
+			dispatchDate,postoffice,transportLine,customerNo,dispatchNo,
+			dispatchType,lockedBagNo,ppiNo,airwayBillNo,truckingNo,
+			eta,referenceId,bagNo,shipperName,shipperAddress1,
+			shipperAddress2,shipperCity,shipperState,shipperPostalCode,shipperCountryCode,
+			receiverAddress1,receiverAddress2,receiverCity,receiverState,receiverPostcode,
+			receiverCountryCode,receiverName,receiverPhone,receiverEmail,itemDescription,
+			qty,weight,length,height,width,
+			itemValue,referenceIdentificationB,terms,cn35,countryCode,
+			addWho,addDate,updateDate,postofficeEnName,sealNo
+		)VALUES
+		<foreach collection="list" item="item" index="index" separator=",">
+			(
+			#{item.dispatchDate},#{item.postoffice},#{item.transportLine},#{item.customerNo},#{item.dispatchNo},
+			#{item.dispatchType},#{item.lockedBagNo},#{item.ppiNo},#{item.airwayBillNo},#{item.truckingNo},
+			#{item.eta},#{item.referenceId},#{item.bagNo},#{item.shipperName},#{item.shipperAddress1},
+			#{item.shipperAddress2},#{item.shipperCity},#{item.shipperState},#{item.shipperPostalCode},#{item.shipperCountryCode},
+			#{item.receiverAddress1},#{item.receiverAddress2},#{item.receiverCity},#{item.receiverState},#{item.receiverPostcode},
+			#{item.receiverCountryCode},#{item.receiverName},#{item.receiverPhone},#{item.receiverEmail},#{item.itemDescription},
+			#{item.qty},#{item.weight},#{item.length},#{item.height},#{item.width},
+			#{item.itemValue},#{item.referenceIdentificationB},#{item.terms},#{item.cn35},#{item.countryCode},
+			#{item.addWho},#{item.addDate},#{item.updateDate},#{item.postofficeEnName},#{item.sealNo}
+			)
+		
+		</foreach>
+	</insert>
+	
+	
+	<delete id="deleteItemByDispatchNo" parameterType="java.util.List">
+		DELETE FROM items
+		WHERE dispatchNo IN
+		<foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<select id="getReferenceIdByparamMap" parameterType="map" resultType="java.lang.String">
+		SELECT referenceId
+		FROM items
+		WHERE 
+			dispatchNo = #{dispatchNo}
+		AND postofficeEnName = #{postofficeEnName}
+	</select>
+	
+	<select id="queryReferenceIdListByDispatchNo" parameterType="com.xipin.est.db.bean.PackageUpdateBean" resultType="java.lang.String">
+		SELECT referenceId
+		FROM items
+		WHERE 
+			dispatchNo = #{dispatchNo}
+		AND postofficeEnName = #{postofficeEnName}
+	</select>
+	
+	<resultMap type="com.xipin.est.db.po.post.PackageListPo" id="packageMap">
+		<result column="referenceId" property="referenceId"/>
+		<result column="bagNo" property="packageNo"/>
+	</resultMap>
+	
+	<select id="queryItemListByDispatchNo" parameterType="com.xipin.est.db.bean.PackageListBean" resultMap="packageMap" useCache="true">
+		select referenceId ,bagNo,cn35,receiverCountryCode,dispatchType,postofficeEnName
+		from items 
+		where dispatchNo = #{dispatchNo} AND postofficeEnName = #{postofficeEnName}
+		<if test="beginIndex != null and pageSize != null">
+			limit #{beginIndex}, #{pageSize}
+		</if>
+	</select>
+	
+	<select id="queryItemCountByDispatchNo" parameterType="com.xipin.est.db.bean.PackageListBean" resultType="int" useCache="true">
+		select count(referenceId)
+		from items 
+		where dispatchNo = #{dispatchNo} AND postofficeEnName = #{postofficeEnName}
+	</select>
+	
+	<update id="updateItemCN35" parameterType="com.xipin.est.db.bean.PackageUpdateBean">
+		UPDATE items SET cn35 = #{cn35}
+		WHERE postofficeEnName = #{postofficeEnName} AND dispatchNo = #{dispatchNo}
+		<if test="packageNo != null and '' != packageNo">
+			AND bagNo = #{packageNo}
+		</if>
+		<if test="referenceId != null and '' != referenceId">
+			AND referenceId = #{referenceId}
+		</if>
+	</update>
+	
+	<update id="updateItemCN38" parameterType="com.xipin.est.db.bean.PackageBean">
+		UPDATE items SET cn38 = #{cn38}
+		WHERE postofficeEnName = #{postofficeEnName} AND dispatchNo = #{dispatchNo} AND bagNo = #{packageNo}
+	</update>
+	
+	<update id="updateItemCN35ByBagNo" parameterType="com.xipin.est.db.bean.PackageUpdateBean">
+		UPDATE items SET cn35 = #{cn35}
+		WHERE 
+			postofficeEnName = #{postofficeEnName}
+		AND dispatchNo = #{dispatchNo}
+		AND bagNo = #{packageNo}
+		AND cn35 IS NOT NULL
+		AND cn35 != ''
+	</update>
+	
+	<select id="queryCn35ByReferenceId" parameterType="com.xipin.est.db.bean.PackageUpdateBean" resultType="string">
+		SELECT cn35 FROM items
+		WHERE 
+			postofficeEnName = #{postofficeEnName} 
+		AND dispatchNo = #{dispatchNo} 
+		AND referenceId = #{referenceId}
+	</select>
+	
+	<update id="updateTruckingNo" parameterType="com.xipin.est.db.bean.DetailListUpdateBean" flushCache="true">
+		update items
+		set airwayBillNo = #{airwayBillNo}, truckingNo = #{truckingNo}
+		where dispatchNo = #{dispatchNo} and postofficeEnName = #{postofficeEnName}
+	</update>
+	
+	<update id="inputCN35" parameterType="com.xipin.est.db.bean.PackageBean" flushCache="true">
+		update items
+		set cn35 = #{cn35}
+		where dispatchNo = #{dispatchNo} and bagNo = #{packageNo} and postofficeEnName = #{postofficeEnName}
+	</update>
+	
+	<update id="inputCN38" parameterType="com.xipin.est.db.bean.PackageBean" flushCache="true">
+		update items
+		set cn38 = #{cn38}
+		where dispatchNo = #{dispatchNo} and postofficeEnName = #{postofficeEnName} and countryCode = #{countryCode}
+	</update>
+</mapper>

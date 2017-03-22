@@ -1,0 +1,557 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xipin.est.db.dao.IOrgDao" >
+  <resultMap id="BaseResultMap" type="com.xipin.est.db.po.OrgPo" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="parentId" property="parentId" jdbcType="BIGINT" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="ename" property="ename" jdbcType="VARCHAR" />
+    <result column="no" property="no" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="TINYINT" />
+    <result column="level" property="level" jdbcType="TINYINT" />
+    <result column="status" property="status" jdbcType="TINYINT" />
+    <result column="creater" property="creater" jdbcType="BIGINT" />
+    <result column="createrName" property="createrName" jdbcType="VARCHAR" />
+    <result column="isTransport" property="isTransport" jdbcType="BIT" />
+    <result column="address" property="address" jdbcType="VARCHAR" />
+    <result column="phoneNum" property="phoneNum" jdbcType="VARCHAR" />
+    <result column="createDate" property="createDate" jdbcType="TIMESTAMP" />
+    <result column="updateDate" property="updateDate" jdbcType="TIMESTAMP" />
+  </resultMap>
+  
+  <resultMap type="com.xipin.est.db.po.post.OrgJGPo" id="orgJGMap">
+  	<id column="id" property="id"/>
+  	<result column="pid" property="pid"/>
+  	<result column="name" property="name"/>
+  	<result column="ename" property="ename"/>
+  	<result column="customerNo" property="customerNo"/>
+  	<result column="ppiNo" property="ppiNo"/>
+  	<result column="address" property="address"/>
+  	<association property="line" column="id" select="com.xipin.est.db.dao.IOrgDao.getBMByPId" />
+  </resultMap>
+  
+  <resultMap type="com.xipin.est.db.po.post.OrgJGPo" id="jgMap">
+  	<id column="id" property="id"/>
+  	<result column="pid" property="pid"/>
+  	<result column="name" property="name"/>
+  	<result column="ename" property="ename"/>
+  	<result column="customerNo" property="customerNo"/>
+  	<result column="ppiNo" property="ppiNo"/>
+  	<result column="address" property="address"/>
+  </resultMap>
+  
+  <sql id="Base_Column_List" >
+    id, parentId, name, ename, no, type, level, status, creater, createrName, isTransport, address, 
+    phoneNum, createDate, updateDate
+  </sql>
+  <sql id="condition" >
+    <if test="id != null" >
+	   and id = #{id,jdbcType=INTEGER}
+	</if>
+	<if test="parentId != null" >
+	   and parentId = #{parentId,jdbcType=INTEGER}
+	</if>
+	<if test="name != null and '' != name" >
+	   and name like CONCAT('%',#{name,jdbcType=VARCHAR},'%')
+	</if>
+	<if test="no != null and '' != no" >
+	   and no = #{no,jdbcType=VARCHAR}
+	</if>
+	<if test="type != null" >
+	   and type = #{type,jdbcType=TINYINT}
+	</if>
+	<if test="level != null" >
+	   and level = #{level,jdbcType=TINYINT}
+	</if>
+	<if test="status != null" >
+	   and status = #{status,jdbcType=TINYINT}
+	</if>
+	<if test="creater != null" >
+	   and creater = #{creater,jdbcType=INTEGER}
+	</if>
+	<if test="createrName != null and '' != createrName" >
+	   and createrName = #{createrName,jdbcType=VARCHAR}
+	</if>
+	<if test="address != null and '' != address" >
+	   and address = #{address,jdbcType=VARCHAR}
+	</if>
+	<if test="phoneNum != null and '' != phoneNum" >
+	   and phoneNum = #{phoneNum,jdbcType=VARCHAR}
+	</if>
+	<if test="null!=ids" >
+    	AND id in
+	  	<foreach collection="ids" item="item" separator="," open="(" close=")">
+	  		#{item}
+	  	</foreach>
+    </if>
+  </sql>
+  <select id="getByKey" resultMap="BaseResultMap" parameterType="java.lang.Long" flushCache="false" useCache="true" >
+    SELECT 
+    <include refid="Base_Column_List" />
+    FROM org
+    WHERE id = #{id,jdbcType=BIGINT} and status = 1
+  </select>
+  <select id="queryListByBiz" resultMap="BaseResultMap" parameterType="com.xipin.est.db.bean.OrgBean" flushCache="false" useCache="true" >
+    SELECT 
+    <include refid="Base_Column_List" />
+     FROM org WHERE status = 1
+     <include refid="condition" />
+     <if test="beginIndex != null and pageSize != null" >
+	   limit #{beginIndex}, #{pageSize}
+	</if>
+  </select>
+  <select id="getBMByPId" resultType="com.xipin.est.db.po.post.OrgJGPo" flushCache="false" parameterType="java.lang.Long">
+     SELECT 
+     	o1.id,
+     	o1.name,
+     	o1.address
+     FROM org o1
+     WHERE o1.id = #{id} and o1.status = 1
+  </select>
+  
+  <select id="queryClientList" resultMap="BaseResultMap" parameterType="com.xipin.est.db.bean.OrgBean" flushCache="false" useCache="true">
+  	SELECT DISTINCT 
+	  	o2.id,
+	  	o2.parentId,
+	  	o2.name,
+	  	o2.ename,
+	  	o2.no,
+	  	o2.type,
+	  	o2.level,
+	  	o2.status,
+	  	o2.creater,
+	  	o2.createrName,
+	  	o2.isTransport,
+	  	o2.address,
+	  	o2.phoneNum,
+	  	o2.createDate,
+	  	o2.updateDate
+  	from org o1
+	INNER JOIN org o2 ON o2.id = o1.parentId
+	WHERE o2.type = 1 AND o2.`level` = 2 and o2.status = 1
+	<if test="orgId != null">
+		AND o1.id = #{orgId}
+	</if>
+	<if test="name != null and ''!= name">
+		AND o2.name like CONCAT('%',#{name,jdbcType=VARCHAR},'%')
+	</if>
+	<if test="beginIndex != null and pageSize != null" >
+	   LIMIT #{beginIndex}, #{pageSize}
+	</if>
+  </select>
+  
+  <select id="queryPostList" resultMap="BaseResultMap" parameterType="com.xipin.est.db.bean.OrgBean" flushCache="false" useCache="true">
+  	SELECT DISTINCT 
+  		o2.id,
+	  	o2.parentId,
+	  	o2.name,
+	  	o2.ename,
+	  	o2.no,
+	  	o2.type,
+	  	o2.level,
+	  	o2.status,
+	  	o2.creater,
+	  	o2.createrName,
+	  	o2.isTransport,
+	  	o2.address,
+	  	o2.phoneNum,
+	  	o2.createDate,
+	  	o2.updateDate
+  	from org o1
+  	INNER JOIN org o2 ON o2.id = o1.parentId 
+  	WHERE o2.type = 0 AND o2.`level` = 2 and o2.status = 1
+  	<if test="orgId != null">
+		AND o1.id = #{orgId}
+	</if>
+	<if test="beginIndex != null and pageSize != null" >
+	   LIMIT #{beginIndex}, #{pageSize}
+	</if>
+  </select>
+  
+  
+  <select id="queryClientListNum" resultType="int" parameterType="com.xipin.est.db.bean.OrgBean" flushCache="false" useCache="true">
+  	SELECT COUNT(*) FROM (
+	  	SELECT DISTINCT 
+	  		o2.id,
+		  	o2.parentId,
+		  	o2.name,
+	  		o2.no,
+		  	o2.type,
+		  	o2.level,
+		  	o2.status,
+		  	o2.creater,
+		  	o2.createrName,
+		  	o2.isTransport,
+		  	o2.address,
+		  	o2.phoneNum,
+		  	o2.createDate,
+		  	o2.updateDate
+	  	from org o1
+		INNER JOIN org o2 ON o2.id = o1.parentId 
+		WHERE o2.type = 1 AND o2.`level` = 2 and o2.status = 1
+		<if test="orgId != null">
+			AND o1.id = #{orgId}
+		</if>
+		<if test="parentId != null">
+			AND o1.parentId = #{parentId}
+		</if>
+		<if test="name != null and ''!= name">
+		AND o2.name like CONCAT('%',#{name,jdbcType=VARCHAR},'%')
+		</if>
+  	) as tt
+  	
+  </select>
+  
+  <select id="queryPostListNum" resultType="int" parameterType="com.xipin.est.db.bean.OrgBean" flushCache="false" useCache="true">
+  	SELECT COUNT(*) FROM (
+	  	SELECT DISTINCT 
+		  	o2.id,
+		  	o2.parentId,
+		  	o2.name,
+	  		o2.no,
+		  	o2.type,
+		  	o2.level,
+		  	o2.status,
+		  	o2.creater,
+		  	o2.createrName,
+		  	o2.isTransport,
+		  	o2.address,
+		  	o2.phoneNum,
+		  	o2.createDate,
+		  	o2.updateDate
+	  	from org o1
+	  	INNER JOIN org o2 ON o2.id = o1.parentId
+	  	WHERE o2.type = 0 AND o2.`level` = 2 and o2.status = 1
+	  	<if test="orgId != null">
+			AND o1.id = #{orgId}
+		</if>
+  	) as tt
+  
+  </select>
+  
+  
+  <select id="queryDepartList" parameterType="com.xipin.est.db.bean.OrgBean" resultMap="BaseResultMap" flushCache="false" useCache="true">
+  	SELECT 
+	DISTINCT
+		o2.id,
+	  	o2.parentId,
+	  	o2.name,
+	  	o2.ename,
+	  	o2.no,
+	  	o2.type,
+	  	o2.level,
+	  	o2.status,
+	  	o2.creater,
+	  	o2.createrName,
+	  	o2.isTransport,
+	  	o2.address,
+	  	o2.phoneNum,
+	  	o2.createDate,
+	  	o2.updateDate
+	FROM `user` u 
+	INNER JOIN org o1 ON (u.userType = -1 AND u.id = #{userId}) OR (u.orgId = o1.id and u.id = #{userId} and u.userType = 0) AND o1.`status` = 1
+	INNER JOIN org o2 ON o1.parentId = o2.parentId AND o2.type = 0 AND o2.`level` = 3 and o2.status = 1
+	where 1 = 1
+	<if test="userType != -1">
+		and o2.id in(
+			select da.orgId from data_auth da where da.id in(
+				SELECT uda.dataAuthId FROM `user_data_auth` uda where uda.userId = #{userId}
+			)
+		)
+	</if>
+	<if test="beginIndex != null and pageSize != null" >
+	   limit #{beginIndex}, #{pageSize}
+	</if>
+  </select>
+  
+  <select id="queryDepartListNum" parameterType="com.xipin.est.db.bean.OrgBean" resultType="int">
+  	SELECT COUNT(*) from (
+	SELECT 
+	DISTINCT
+		o2.id,
+	  	o2.parentId,
+	  	o2.name,
+	  	o2.no,
+	  	o2.type,
+	  	o2.level,
+	  	o2.status,
+	  	o2.creater,
+	  	o2.createrName,
+	  	o2.isTransport,
+	  	o2.address,
+	  	o2.phoneNum,
+	  	o2.createDate,
+	  	o2.updateDate
+		FROM `user` u 
+		INNER JOIN org o1 ON (u.userType = -1 AND u.id = #{userId}) OR (u.orgId = o1.id and u.id = #{userId} and u.userType = 0) AND o1.`status` = 1
+		INNER JOIN org o2 ON o1.parentId = o2.parentId AND o2.type = 0 AND o2.`level` = 3 and o2.status = 1
+		where 1 = 1
+		<if test="userType != -1">
+			and o2.id in(
+				select da.orgId from data_auth da where da.id in(
+					SELECT uda.dataAuthId FROM `user_data_auth` uda where uda.userId = #{userId}
+				)
+			)
+		</if>
+	) as aa
+  </select>
+  
+   <select id="queryListCountByBiz" resultType="int" parameterType="com.xipin.est.db.bean.OrgBean" flushCache="false" useCache="true" >
+    SELECT 
+     count(1)
+     FROM org WHERE status = 1
+     <include refid="condition" />
+  </select>
+  <update id="deleteByKey" parameterType="java.lang.Long" flushCache="true" >
+    update org set status = 0
+    WHERE id = #{id,jdbcType=BIGINT} or parentId = #{id,jdbcType=BIGINT}
+  </update>
+  <delete id="deleteByCondition" parameterType="com.xipin.est.db.bean.OrgBean" flushCache="true" >
+    DELETE FROM org
+    WHERE status = 1
+    <include refid="condition" />
+  </delete>
+  <insert id="insertSel" parameterType="com.xipin.est.db.bean.OrgBean" flushCache="true" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO org
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="parentId != null" >
+        parentId,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="ename != null" >
+        ename,
+      </if>
+      <if test="no != null" >
+        no,
+      </if>
+      <if test="type != null" >
+        type,
+      </if>
+      <if test="level != null" >
+        level,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="creater != null" >
+        creater,
+      </if>
+      <if test="createrName != null" >
+        createrName,
+      </if>
+      <if test="isTransport != null" >
+        isTransport,
+      </if>
+      <if test="address != null" >
+        address,
+      </if>
+      <if test="phoneNum != null" >
+        phoneNum,
+      </if>
+      <if test="createDate != null" >
+        createDate,
+      </if>
+      <if test="updateDate != null" >
+        updateDate,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="parentId != null" >
+        #{parentId,jdbcType=BIGINT},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="ename != null" >
+        #{ename,jdbcType=VARCHAR},
+      </if>
+      <if test="no != null" >
+        #{no,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=TINYINT},
+      </if>
+      <if test="level != null" >
+        #{level,jdbcType=TINYINT},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=TINYINT},
+      </if>
+      <if test="creater != null" >
+        #{creater,jdbcType=BIGINT},
+      </if>
+      <if test="createrName != null" >
+        #{createrName,jdbcType=VARCHAR},
+      </if>
+      <if test="isTransport != null" >
+        #{isTransport,jdbcType=BIT},
+      </if>
+      <if test="address != null" >
+        #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="phoneNum != null" >
+        #{phoneNum,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null" >
+        #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateDate != null" >
+        #{updateDate,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPKSel" parameterType="com.xipin.est.db.bean.OrgBean" flushCache="true" >
+    UPDATE org
+    <set >
+      <if test="parentId != null" >
+        parentId = #{parentId,jdbcType=BIGINT},
+      </if>
+      <if test="name != null" >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="no != null" >
+        no = #{no,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        type = #{type,jdbcType=TINYINT},
+      </if>
+      <if test="level != null" >
+        level = #{level,jdbcType=TINYINT},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=TINYINT},
+      </if>
+      <if test="creater != null" >
+        creater = #{creater,jdbcType=BIGINT},
+      </if>
+      <if test="createrName != null" >
+        createrName = #{createrName,jdbcType=VARCHAR},
+      </if>
+      <if test="isTransport != null" >
+        isTransport = #{isTransport,jdbcType=BIT},
+      </if>
+      <if test="address != null" >
+        address = #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="phoneNum != null" >
+        phoneNum = #{phoneNum,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null" >
+        createDate = #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateDate != null" >
+        updateDate = #{updateDate,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    WHERE id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <select id="getJGByUserId" resultMap="orgJGMap" flushCache="false" parameterType="java.lang.Long">
+   	SELECT 
+		o3.`id` AS pid,
+		o3.`name` AS `name`,
+		pc.`accountNo` AS customerNo,
+		pc.`ppiNo` AS ppiNo,
+		o3.`address` AS address,
+		o2.`id` AS id
+	FROM `user` u
+		INNER JOIN org o1 ON u.`orgId` = o1.`id` AND u.`id` = #{userId}
+		INNER JOIN post_client pc ON (o1.`parentId` = pc.`clientId` AND u.`userType` = 1) OR (o1.`parentId` = pc.`postId` AND u.`userType` = 0)
+		INNER JOIN org o2 ON ((o2.`parentId` = pc.`postId` AND u.`userType` = 1) OR (o2.`parentId` = pc.`clientId` AND u.`userType` = 0)) and o2.status = 1
+		INNER JOIN data_auth da ON da.`orgId` = o2.`id`
+		INNER JOIN user_data_auth uda ON uda.`userId` = u.`id` AND da.`id` = uda.`dataAuthId`
+		INNER JOIN org o3 ON o3.`id` = o2.`parentId`
+  </select>
+  
+  <select id="getJGByUserIdP" resultMap="jgMap" flushCache="false" parameterType="java.lang.Long">
+   	SELECT 
+   	DISTINCT
+		o3.`id` AS pid,
+		o3.`name` AS `name`,
+		pc.`accountNo` AS customerNo,
+		pc.`ppiNo` AS ppiNo,
+		o3.`address` AS address
+	FROM `user` u
+		INNER JOIN org o1 ON u.`orgId` = o1.`id` AND u.`id` = #{userId} AND o1.`status` = 1
+		INNER JOIN post_client pc ON (o1.`parentId` = pc.`clientId` AND u.`userType` = 1) OR (o1.`parentId` = pc.`postId` AND u.`userType` = 0)
+		INNER JOIN org o2 ON  (o2.`parentId` = pc.`postId` AND u.`userType` = 1) OR (o2.`parentId` = pc.`clientId` AND u.`userType` = 0) AND o2.`status` = 1
+		INNER JOIN data_auth da ON da.`orgId` = o2.`id`
+		INNER JOIN user_data_auth uda ON uda.`userId` = u.`id` AND da.`id` = uda.`dataAuthId`
+		INNER JOIN org o3 ON o3.`id` = o2.`parentId` and o3.status = 1
+  </select>
+  
+  <select id="getOrgForPostoffice" resultMap="BaseResultMap" flushCache="false">
+  	SELECT id,name 
+  	FROM org
+  	WHERE type = 0 AND level = 2 and status = 1
+  </select>
+  	
+  <resultMap type="com.xipin.est.db.po.org.OrgListPo" id="orgListMap">
+  	<id column="id" property="id" jdbcType="INTEGER"/>
+  	<result column="name" property="name" jdbcType="VARCHAR"/>
+  	<result column="ename" property="ename" jdbcType="VARCHAR"/>
+  	<result column="parentName" property="parentName" jdbcType="VARCHAR"/>
+  	<result column="parentEName" property="parentEName" jdbcType="VARCHAR"/>
+  	<result column="no" property="no" jdbcType="VARCHAR"/>
+  	<result column="type" property="type" jdbcType="INTEGER"/>
+  	<result column="level" property="level" jdbcType="INTEGER"/>
+  	<result column="address" property="address" jdbcType="VARCHAR"/>
+  	<result column="phoneNum" property="phoneNum" jdbcType="VARCHAR"/>
+  </resultMap>
+  
+  <sql id="listCondition">
+  	<if test="parentId != null and parentId != ''">
+  		o1.parentId = #{parentId} and
+  	</if>
+  </sql>
+  
+  <select id="queryOrgList" resultType="com.xipin.est.db.bean.org.OrgListBean" resultMap="orgListMap" useCache="true" flushCache="false">
+  	select o1.id, o1.name, o1.ename, o2.name as parentName,o2.ename as parentEName, o1.no, o1.type, o1.level, o1.address, o1.phoneNum
+  	from org o1 left join org o2 on (o1.parentId = o2.id)
+  	<where>
+  		<trim suffixOverrides=" and">
+  			<include refid="listCondition"/>
+  			(o1.level = 3 or o1.level = 2) and o1.status = 1 and
+  		</trim>
+  	</where>
+  	<if test="beginIndex != null and pageSize != null">
+  		limit #{beginIndex}, #{pageSize}
+  	</if>
+  </select>
+  
+  <select id="queryOrgCount" parameterType="com.xipin.est.db.bean.org.OrgListBean" resultType="int" useCache="true" flushCache="false">
+  	select count(*)
+  	from org o1
+  	<where>
+  		<trim suffixOverrides=" and">
+  			<include refid="listCondition"/>
+  			(o1.level = 3 OR o1.level = 2) and o1.status = 1 and
+  		</trim>
+  	</where>
+  </select>
+  
+  <select id="queryMaxNo" parameterType="String" resultType="String" useCache="true" flushCache="false">
+  	select max(no)
+  	from org where no like concat(#{prefix},'%')
+  </select>
+  
+  <select id="getOrgPoListByUserId" parameterType="java.lang.Long" resultMap="orgListMap" useCache="true">
+  	SELECT o.id,o.name,o.no
+  	FROM 
+  	user u 
+  	INNER JOIN org o ON u.orgId = o.id and o.status = 1
+  	WHERE u.id = #{userId}
+  </select>
+  
+  <select id="queryCountByName" parameterType="String" resultType="int" useCache="true">
+  	select count(id) from org where name = #{name} and status = 1
+  </select>
+  
+  <select id="queryAll" resultMap="BaseResultMap" useCache="true">
+  	select <include refid="Base_Column_List" />
+  	from org
+  </select>
+  
+</mapper>

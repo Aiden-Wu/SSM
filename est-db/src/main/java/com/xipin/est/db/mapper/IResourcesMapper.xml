@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xipin.est.db.dao.IResourcesDao" >
+  <resultMap id="BaseResultMap" type="com.xipin.est.db.po.resources.ResourcesPo" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="ename" property="ename" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="VARCHAR" />
+    <result column="pid" property="pid" jdbcType="BIGINT" />
+    <result column="pids" property="pids" jdbcType="VARCHAR" />
+    <result column="url" property="url" jdbcType="VARCHAR" />
+    <result column="sort" property="sort" jdbcType="INTEGER" />
+    <result column="permission" property="permission" jdbcType="INTEGER" />
+    <result column="icon" property="icon" jdbcType="VARCHAR" />
+    <result column="createId" property="createId" jdbcType="BIGINT" />
+    <result column="createName" property="createName" jdbcType="VARCHAR" />
+    <result column="createDate" property="createDate" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, name, ename, type, pid, pids, url, sort, icon, createId, createName, createDate
+  </sql>
+  <sql id="condition" >
+    <if test="null!=type">
+        AND type=#{type}
+    </if>
+  </sql>
+ 
+  <select id="queryResourceByUser" resultMap="BaseResultMap" parameterType="java.lang.Long">
+      select r.*,IF(ur.userId,1,0)  as permission from resources r LEFT JOIN 
+      (select * from user_resources where userId=#{userId,jdbcType=BIGINT}) ur  on r.id=ur.resourcesId where r.type='menu' order by r.pid, r.sort
+  </select>
+  
+  <select id="getResourcesPoListByUserId" parameterType="java.lang.Long" resultType="java.lang.String" useCache="true">
+  	SELECT
+		DISTINCT(r.url)
+	FROM
+		`resources` r
+	WHERE
+		(
+			r.id IN (
+				SELECT
+					ur.resourcesId
+				FROM
+					`user_resources` ur
+				WHERE
+					userId = #{userId}
+			) and r.type = 'menu' 
+		
+		) 
+		OR(
+			r.pid IN (
+				SELECT
+					ur.resourcesId
+				FROM
+					`user_resources` ur
+				WHERE
+					userId = #{userId}
+			) and r.type = 'button' 
+		)
+  </select>
+  
+  <select id="queryResourceTreeByUser" resultMap="BaseResultMap">
+      select r.*,IF(ur.userId,1,0)  as permission from resources r LEFT JOIN 
+      (select * from user_resources where userId=#{userId,jdbcType=BIGINT}) ur  on r.id=ur.resourcesId where r.type='menu' and r.userType like concat('%', #{userType}, '%')
+  </select>
+  
+</mapper>

@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xipin.est.db.dao.IUserDao" >
+  <resultMap id="BaseResultMap" type="com.xipin.est.db.po.UserPo" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="username" property="username" jdbcType="VARCHAR" />
+    <result column="password" property="password" jdbcType="VARCHAR" />
+    <result column="salt" property="salt" jdbcType="CHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="userType" property="userType" jdbcType="TINYINT" />
+    <result column="userStatus" property="userStatus" jdbcType="TINYINT" />
+    <result column="status" property="status" jdbcType="BIT" />
+    <result column="title" property="title" jdbcType="VARCHAR" />
+    <result column="no" property="no" jdbcType="CHAR" />
+    <result column="orgId" property="orgId" jdbcType="BIGINT" />
+    <result column="departmentName" property="departmentName" jdbcType="VARCHAR" />
+    <result column="departmentEName" property="departmentEName" jdbcType="VARCHAR" />
+    <result column="orgName" property="orgName" jdbcType="VARCHAR" />
+    <result column="orgEName" property="orgEName" jdbcType="VARCHAR" />
+    <result column="createDate" property="createDate" jdbcType="TIMESTAMP" />
+    <result column="updateDate" property="updateDate" jdbcType="TIMESTAMP" />
+    <result column="creater" property="creater" jdbcType="BIGINT" />
+    <result column="createrName" property="createrName" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, username, password, salt, name, userType, userStatus, status, title, no, orgId,
+    createDate, updateDate, creater, createrName
+  </sql>
+  <sql id="condition" >
+  	<if test="id != null and id != ''">
+		and id = #{id} 
+	</if>
+  	<if test="username != null and username != ''">
+		and username = #{username, jdbcType=VARCHAR} 
+	</if>
+	<if test="password != null and password != ''">
+		and password = #{password, jdbcType=VARCHAR}
+	</if>
+	<if test="salt != null and salt != ''">
+		and salt = #{salt, jdbcType=VARCHAR} 
+	</if>
+	<if test="name != null and name != ''">
+		and name like CONCAT('%',#{name, jdbcType=VARCHAR},'%')
+	</if>
+	<if test="userType != null and userType != ''">
+		and userType = #{userType, jdbcType=INTEGER}
+	</if>
+	<if test="userStatus != null and userStatus != ''">
+		and userStatus = #{userStatus, jdbcType=INTEGER}
+	</if>
+	<if test="status != null and status != ''">
+		and status = #{status, jdbcType=BIT}
+	</if>
+	<if test="title != null and title != ''">
+		and title like CONCAT('%',#{title, jdbcType=VARCHAR},'%')
+	</if>
+	<if test="no != null and no != ''">
+		and no = #{no, jdbcType=VARCHAR}
+	</if>
+	<if test="orgId != null and orgId != ''">
+		and orgId = #{orgId, jdbcType=VARCHAR}
+	</if>
+  </sql>
+  <select id="getByKey" resultMap="BaseResultMap" parameterType="java.lang.Long" flushCache="false" useCache="true" >
+    SELECT 
+    <include refid="Base_Column_List" />
+    FROM user
+    WHERE id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="queryListByBiz" resultMap="BaseResultMap" parameterType="map" flushCache="false" useCache="true" >
+    SELECT 
+    <include refid="Base_Column_List" />
+     FROM user
+    <where>
+		<trim suffixOverrides=" and">
+			<include refid="condition" />
+		</trim>
+	</where>
+    <if test="beginIndex != null and pageSize != null" >
+	   limit #{beginIndex}, #{pageSize}
+	</if>
+  </select>
+   <select id="queryUserForJsp" resultMap="BaseResultMap" parameterType="map" flushCache="false" useCache="true" >
+   SELECT 
+		o2.name AS orgName,
+		o2.ename AS orgEName,
+		o1.name AS departmentName,
+		o1.ename AS departmentEName,
+		u1.id,
+		u1.username, 
+		u1.name, 
+		u1.userType, 
+		u1.userStatus, 
+		u1.status, 
+		u1.title, 
+		u1.no, 
+		u1.orgId,
+		u1.createDate, 
+		u1.updateDate, 
+		u1.creater, 
+		u1.createrName
+	FROM `user` u1
+	INNER JOIN org o1 ON u1.orgId=o1.id AND o1.`status`=1
+		<if test="username != null and username != ''">
+		   and	u1.username = #{username, jdbcType=VARCHAR}
+		</if>
+		<if test="password != null and password != ''">
+		   and u1.password = #{password, jdbcType=VARCHAR}
+		</if>
+		<if test="salt != null and salt != ''">
+			and u1.salt = #{salt, jdbcType=VARCHAR}
+		</if>
+		<if test="name != null and name != ''">
+			and u1.name like CONCAT('%',#{name, jdbcType=VARCHAR},'%')
+		</if>
+		<if test="userType != null and userType != ''">
+			and u1.userType = #{userType, jdbcType=INTEGER}
+		</if>
+		<if test="userStatus != null and userStatus != ''">
+			and u1.userStatus = #{userStatus, jdbcType=INTEGER}
+		</if>
+		<if test="status != null and status != ''">
+			and u1.status = #{status, jdbcType=BIT}
+		</if>
+		<if test="title != null and title != ''">
+			and u1.title like CONCAT('%',#{title, jdbcType=VARCHAR},'%')
+		</if>
+		<if test="no != null and no != ''">
+			and u1.no = #{no, jdbcType=VARCHAR}
+		</if>
+		<if test="orgId != null and orgId != ''">
+			and u1.orgId = #{orgId, jdbcType=VARCHAR}
+		</if>
+	INNER JOIN org o2 ON o1.parentId = o2.id AND o2.`status` = 1	
+    <if test="beginIndex != null and pageSize != null" >
+	   limit #{beginIndex}, #{pageSize}
+	</if>
+  </select>
+  <select id="getMaxUserNoByOrgId" resultType="java.lang.String" parameterType="java.lang.Long" flushCache="false" useCache="true" >
+      select max(no) from user
+  </select>
+  <select id="queryListCountByBiz" resultType="int" parameterType="com.xipin.est.db.bean.UserBean" flushCache="false" useCache="true" >
+    SELECT 
+     count(1)
+     FROM user
+     <where>
+		<trim suffixOverrides=" and">
+			<include refid="condition" />
+		</trim>
+	</where>
+  </select>
+  
+  <insert id="insert" parameterType="com.xipin.est.db.bean.UserBean" flushCache="true" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO user (id, username, password, 
+      salt, name, userType, userStatus, 
+      status, title, no, orgId, 
+      createDate, updateDate, 
+      creater, createrName)
+    VALUES (#{id,jdbcType=BIGINT}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, 
+      #{salt,jdbcType=CHAR}, #{name,jdbcType=VARCHAR}, #{userType,jdbcType=TINYINT}, #{userStatus,jdbcType=TINYINT}, 
+      #{status,jdbcType=BIT}, #{title,jdbcType=VARCHAR}, #{no,jdbcType=CHAR}, #{orgId,jdbcType=BIGINT}, 
+       #{createDate,jdbcType=TIMESTAMP}, #{updateDate,jdbcType=TIMESTAMP}, 
+      #{creater,jdbcType=BIGINT}, #{createrName,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSel" parameterType="com.xipin.est.db.bean.UserBean" flushCache="true" useGeneratedKeys="true" keyProperty="id" >
+    INSERT INTO user
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="username != null" >
+        username,
+      </if>
+      <if test="password != null" >
+        password,
+      </if>
+      <if test="salt != null" >
+        salt,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="userType != null" >
+        userType,
+      </if>
+      <if test="userStatus != null" >
+        userStatus,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="title != null" >
+        title,
+      </if>
+      <if test="no != null" >
+        no,
+      </if>
+      <if test="orgId != null" >
+        orgId,
+      </if>
+      <if test="createDate != null" >
+        createDate,
+      </if>
+      <if test="updateDate != null" >
+        updateDate,
+      </if>
+      <if test="creater != null" >
+        creater,
+      </if>
+      <if test="createrName != null" >
+        createrName,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="username != null" >
+        #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null" >
+        #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="salt != null" >
+        #{salt,jdbcType=CHAR},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="userType != null" >
+        #{userType,jdbcType=TINYINT},
+      </if>
+      <if test="userStatus != null" >
+        #{userStatus,jdbcType=TINYINT},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=BIT},
+      </if>
+      <if test="title != null" >
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="no != null" >
+        #{no,jdbcType=CHAR},
+      </if>
+      <if test="orgId != null" >
+        #{orgId,jdbcType=BIGINT},
+      </if>
+      <if test="createDate != null" >
+        #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateDate != null" >
+        #{updateDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="creater != null" >
+        #{creater,jdbcType=BIGINT},
+      </if>
+      <if test="createrName != null" >
+        #{createrName,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPKSel" parameterType="com.xipin.est.db.bean.UserBean" flushCache="true" >
+    UPDATE user
+    <set >
+      <if test="username != null" >
+        username = #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null and ''!=password" >
+        password = #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="salt != null" >
+        salt = #{salt,jdbcType=CHAR},
+      </if>
+      <if test="name != null" >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="userType != null" >
+        userType = #{userType,jdbcType=TINYINT},
+      </if>
+      <if test="userStatus != null" >
+        userStatus = #{userStatus,jdbcType=TINYINT},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=BIT},
+      </if>
+      <if test="title != null" >
+        title = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="no != null" >
+        no = #{no,jdbcType=CHAR},
+      </if>
+      <if test="orgId != null" >
+        orgId = #{orgId,jdbcType=BIGINT},
+      </if>
+      <if test="createDate != null" >
+        createDate = #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateDate != null" >
+        updateDate = #{updateDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="creater != null" >
+        creater = #{creater,jdbcType=BIGINT},
+      </if>
+      <if test="createrName != null" >
+        createrName = #{createrName,jdbcType=VARCHAR},
+      </if>
+    </set>
+    WHERE id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  
+  <select id="getUserInOrgId" resultType="com.xipin.est.db.po.user.UserOrgPo" parameterType="java.lang.Long">
+      SELECT 
+      	u.id AS userId,
+      	u.orgId AS bmId,
+      	o.parentId AS jgId,
+      	o2.name AS jgName
+      FROM user u
+      INNER JOIN org o ON u.orgId = o.id AND u.id = #{userId} AND o.`status` = 1
+      INNER JOIN org o2 ON o.parentId = o2.id AND o2.`status` = 1
+  </select>
+  
+  <update id="delete" parameterType="Long" flushCache="true">
+  	update `user` set status = 0 where id = #{id}
+  </update>
+  
+</mapper>

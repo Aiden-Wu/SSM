@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xipin.est.db.dao.IUserResourcesDao" >
+  <resultMap id="BaseResultMap" type="com.xipin.est.model.UserResources" >
+    <result column="userId" property="userId" jdbcType="BIGINT" />
+    <result column="resourcesId" property="resourcesId" jdbcType="BIGINT" />
+  </resultMap>
+  <sql id="condition" >
+    <if test="null!=params" />
+  </sql>
+  <select id="queryListByBiz" resultMap="BaseResultMap" parameterType="map" flushCache="false" useCache="true" >
+    SELECT 
+    userId, resourcesId
+     FROM user_resources WHERE 1=1 
+    <include refid="condition" />
+  </select>
+  
+  <delete id="deleteByUserId" parameterType="java.lang.Long" flushCache="true" >
+    DELETE FROM user_resources
+    WHERE userId = #{userId,jdbcType=BIGINT}
+  </delete>
+  <insert id="insertBatch" parameterType="java.util.List" flushCache="true" >
+    INSERT INTO user_resources (userId, resourcesId)
+    VALUES 
+    <foreach collection="list" item="item" index="index" separator="," >  
+        (#{item.userId},#{item.resourcesId})
+    </foreach> 
+  </insert>
+  
+</mapper>

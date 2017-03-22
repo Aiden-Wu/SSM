@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xipin.est.db.dao.IPostClientDao" >
+  <resultMap id="BaseResultMap" type="com.xipin.est.db.po.PostClientPo" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="postId" property="postId" jdbcType="BIGINT" />
+    <result column="postName" property="postName" jdbcType="VARCHAR" />
+    <result column="accountNo" property="accountNo" jdbcType="VARCHAR" />
+    <result column="clientId" property="clientId" jdbcType="BIGINT" />
+    <result column="clientName" property="clientName" jdbcType="VARCHAR" />
+    <result column="ppiNo" property="ppiNo" jdbcType="VARCHAR" />
+    <result column="code" property="code" jdbcType="VARCHAR" />
+    <result column="creater" property="creater" jdbcType="BIGINT" />
+    <result column="no" property="no" jdbcType="VARCHAR" />
+    <result column="createrName" property="createrName" jdbcType="VARCHAR" />
+    <result column="createDate" property="createDate" jdbcType="TIMESTAMP" />
+    <result column="updateDate" property="updateDate" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, postId, postName, accountNo, clientId, clientName, ppiNo, code, creater, createrName, 
+    createDate, updateDate
+  </sql>
+  <sql id="condition" >
+    <if test="id != null" >
+	   and id = #{id,jdbcType=BIGINT}
+	</if>
+	<if test="postId != null" >
+	   and postId = #{postId,jdbcType=BIGINT}
+	</if>
+	<if test="postName != null and '' != postName" >
+	   and postName = #{postName,jdbcType=VARCHAR}
+	</if>
+	<if test="accountNo != null and '' != accountNo" >
+	   and accountNo = #{accountNo,jdbcType=VARCHAR}
+	</if>
+	<if test="clientId != null" >
+	   and clientId = #{clientId,jdbcType=BIGINT}
+	</if>
+	<if test="clientName != null and '' != clientName" >
+	   and clientName = #{clientName,jdbcType=VARCHAR}
+	</if>
+	<if test="ppiNo != null and '' != ppiNo" >
+	   and ppiNo = #{ppiNo,jdbcType=VARCHAR}
+	</if>
+	<if test="code != null and '' != code" >
+	   and code = #{code,jdbcType=VARCHAR}
+	</if>
+	<if test="creater != null" >
+	   and creater = #{creater,jdbcType=BIGINT}
+	</if>
+	<if test="createrName != null and '' != createrName" >
+	   and createrName = #{createrName,jdbcType=VARCHAR}
+	</if>
+  </sql>
+  <select id="queryListByBiz" resultMap="BaseResultMap" parameterType="map" flushCache="false" useCache="true" >
+    SELECT 
+    <include refid="Base_Column_List" />
+     FROM post_client WHERE 1=1 
+    <include refid="condition" />
+  </select>
+  
+  <select id="getPostClientPo" resultMap="BaseResultMap" flushCache="false" useCache="true" >
+  	SELECT
+		pc.id, 
+		pc.postId, 
+		pc.postName, 
+		pc.accountNo, 
+		pc.clientId, 
+		pc.clientName, 
+		pc.ppiNo, 
+		pc.code, 
+		pc.creater, 
+		pc.createrName, 
+		pc.createDate, 
+		pc.updateDate,
+		o.`status`,
+		o.`no`
+	FROM
+		`post_client` pc
+	INNER JOIN org o ON pc.postId = o.id
+	AND pc.clientId = #{bean.clientId}
+	AND o.`status` = '1'
+	<if test="start != null and pageSize != null">
+		limit #{start}, #{pageSize}
+	</if>
+  </select>
+  
+  <select id="countPostClient" resultType="java.lang.Integer" flushCache="false" useCache="true" >
+  	SELECT
+		COUNT(pc.id)
+	FROM
+		`post_client` pc
+	INNER JOIN org o ON pc.postId = o.id
+	AND pc.clientId = #{clientId,jdbcType=BIGINT}
+	AND o.`status` = '1'
+  </select>
+  
+  <delete id="deleteByKey" parameterType="java.lang.Long" flushCache="true" >
+    DELETE FROM post_client
+    WHERE id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByCondition" parameterType="com.xipin.est.db.bean.PostClientBean" flushCache="true" >
+    DELETE FROM post_client
+    WHERE 1=1
+    <include refid="condition" />
+  </delete>
+  <insert id="insertSel" parameterType="com.xipin.est.db.bean.PostClientBean" flushCache="true" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO post_client
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="postId != null" >
+        postId,
+      </if>
+      <if test="postName != null" >
+        postName,
+      </if>
+      <if test="accountNo != null" >
+        accountNo,
+      </if>
+      <if test="clientId != null" >
+        clientId,
+      </if>
+      <if test="clientName != null" >
+        clientName,
+      </if>
+      <if test="ppiNo != null" >
+        ppiNo,
+      </if>
+      <if test="code != null" >
+        code,
+      </if>
+      <if test="creater != null" >
+        creater,
+      </if>
+      <if test="createrName != null" >
+        createrName,
+      </if>
+      <if test="createDate != null" >
+        createDate,
+      </if>
+      <if test="updateDate != null" >
+        updateDate,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="postId != null" >
+        #{postId,jdbcType=BIGINT},
+      </if>
+      <if test="postName != null" >
+        #{postName,jdbcType=VARCHAR},
+      </if>
+      <if test="accountNo != null" >
+        #{accountNo,jdbcType=VARCHAR},
+      </if>
+      <if test="clientId != null" >
+        #{clientId,jdbcType=BIGINT},
+      </if>
+      <if test="clientName != null" >
+        #{clientName,jdbcType=VARCHAR},
+      </if>
+      <if test="ppiNo != null" >
+        #{ppiNo,jdbcType=VARCHAR},
+      </if>
+      <if test="code != null" >
+        #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="creater != null" >
+        #{creater,jdbcType=BIGINT},
+      </if>
+      <if test="createrName != null" >
+        #{createrName,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null" >
+        #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateDate != null" >
+        #{updateDate,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+</mapper>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xipin.est.db.dao.ICountryDao">
+
+	<resultMap type="com.xipin.est.db.po.CountryPo" id="countryMap">
+		<id column="id" property="id" jdbcType="INTEGER"/>
+		<result column="code" property="code" jdbcType="VARCHAR"/>
+		<result column="zhName" property="zhName" jdbcType="VARCHAR"/>
+		<result column="enName" property="enName" jdbcType="VARCHAR"/>
+	</resultMap>
+	
+	<sql id="condition">
+		<if test="key != null and key != ''">
+			code like concat(#{key, jdbcType=VARCHAR}, '%') and
+		</if>
+	</sql>
+	
+	<select id="queryCountryList" parameterType="com.xipin.est.db.bean.CountryListBean" resultMap="countryMap" useCache="true" flushCache="false">
+		select id, code, zhName, enName
+		from country
+		<where>
+			<trim suffixOverrides=" and">
+				<include refid="condition"/>
+			</trim>
+		</where>
+		order by code
+		<if test="beginIndex != null and pageSize != null">
+			limit #{beginIndex}, #{pageSize}
+		</if>
+	</select>
+	
+	<select id="queryCountrySum" parameterType="com.xipin.est.db.bean.CountryListBean" resultType="int" useCache="true" flushCache="false">
+		select count(*)
+		from country
+		<where>
+			<trim suffixOverrides=" and">
+				<include refid="condition"/>
+			</trim>
+		</where>
+	</select>
+	
+	<insert id="addCountry" parameterType="com.xipin.est.db.bean.CountryBean" flushCache="true" useGeneratedKeys="true" keyProperty="id">
+		insert into country(code, zhName, enName) values(
+		#{code, jdbcType=VARCHAR}, #{zhName, jdbcType=VARCHAR}, #{enName, jdbcType=VARCHAR})
+	</insert>
+	
+	<delete id="deleteCountry" parameterType="Long" flushCache="true">
+		delete from country where id = #{id, jdbcType=INTEGER}
+	</delete>
+	
+	<update id="updateCountry" parameterType="com.xipin.est.db.bean.CountryBean" flushCache="true">
+		update country
+		<set>
+			<trim suffixOverrides=",">
+				<if test="code != null and code != ''">
+					code = #{code, jdbcType=INTEGER},
+				</if>
+				<if test="zhName != null and zhName != ''">
+					zhName = #{zhName, jdbcType=VARCHAR},
+				</if>
+				<if test="enName != null and enName != ''">
+					enName = #{enName, jdbcType=VARCHAR},
+				</if>
+			</trim>
+		</set>
+		where id = #{id, jdbcType=INTEGER}
+	</update>
+	
+	<select id="getTwoCode" flushCache="true" resultType="java.lang.String">
+		SELECT code FROM country limit 0, 1000   
+	</select>
+	
+</mapper>

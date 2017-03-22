@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans   
+                        http://www.springframework.org/schema/beans/spring-beans-4.1.xsd  
+                        http://www.springframework.org/schema/context   
+                        http://www.springframework.org/schema/context/spring-context-4.1.xsd  
+                        http://www.springframework.org/schema/mvc  
+                        http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd
+                        http://www.springframework.org/schema/aop   
+                        http://www.springframework.org/schema/aop/spring-aop-4.1.xsd
+                        ">
+    <aop:aspectj-autoproxy/>
+    <context:component-scan base-package="com.xipin.est.ucontroller" />
+    <mvc:annotation-driven validator="validator"/>  
+  
+	<bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">  
+	    <property name="providerClass" value="org.hibernate.validator.HibernateValidator"/>  
+	</bean>  
+	
+    <bean id="exceptionResolver" class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">     
+         <property name="exceptionMappings">     
+             <props>     
+                <!--  <prop key="java.lang.Exception">error/error</prop> --> 
+                 <prop key="com.xipin.est.ucontroller.exception.param.RequestParamInvalidPageException">error/page/param_error</prop>
+                 <prop key="com.xipin.est.ucontroller.exception.business.BusinessPageException">error/page/business_error</prop>
+                 <prop key="com.xipin.est.ucontroller.exception.system.SystemPageException">error/page/system_error</prop>
+                 <prop key="com.xipin.est.ucontroller.exception.param.RequestParamInvalidJSONException">error/json/param_error</prop> 
+                 <prop key="com.xipin.est.ucontroller.exception.business.BusinessJSONException">error/json/business_error</prop> 
+                 <prop key="com.xipin.est.ucontroller.exception.system.SystemJSONException">error/json/system_error</prop>
+                 <prop key="com.xipin.est.ucontroller.exception.auth.AuthorityJSONException">error/json/auth_error</prop>
+                 <prop key="com.xipin.est.ucontroller.exception.auth.AuthorityPageException">error/json/auth_error</prop>
+                 <prop key="com.xipin.est.ucontroller.exception.param.RequestParamInvalidJSONPException">error/jsonp/param_error</prop>
+                 <prop key="com.xipin.est.ucontroller.exception.business.BusinessJSONPException">error/jsonp/business_error</prop>
+                 <prop key="com.xipin.est.ucontroller.exception.system.SystemJSONPException">error/jsonp/system_error</prop>
+                 <prop key="com.xipin.est.ucontroller.exception.business.order.OrderPageException">error/page/order_error</prop>
+             </props>
+         </property>  
+     </bean>
+</beans>

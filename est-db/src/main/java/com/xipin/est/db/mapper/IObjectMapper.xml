@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xipin.est.db.dao.IObjectDao">
+
+	<select id="get" parameterType="com.xipin.est.db.bean.LogIDBean" resultType="map" statementType="STATEMENT" useCache="true" flushCache="false">
+		select * from ${tableName}
+		<where>
+			<trim suffixOverrides=" and">
+				<if test="id != null and id != ''">
+					id = ${id} and
+				</if>
+				<if test="dispatchNo != null and dispatchNo != ''">
+					dispatchNo = '${dispatchNo}' and
+				</if>
+				<if test="packageNo != null and packageNo != ''">
+					packageNo = '${packageNo}' and
+				</if>
+			</trim>
+		</where>
+	</select>
+	
+</mapper>

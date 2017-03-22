@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xipin.est.db.dao.IDataAuthDao" >
+  <resultMap id="BaseResultMap" type="com.xipin.est.db.po.DataAuthPo" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="orgId" property="orgId" jdbcType="BIGINT" />
+    <result column="orgName" property="orgName" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="TINYINT" />
+    <result column="code" property="code" jdbcType="VARCHAR" />
+    <result column="createDate" property="createDate" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <resultMap id="DataAuthTreePo" type="com.xipin.est.db.po.DataAuthTreePo" >
+    <result column="orgId" property="orgId" jdbcType="BIGINT" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="parentId" property="parentId" jdbcType="BIGINT" />
+    <result column="dataAuthId" property="dataAuthId" jdbcType="BIGINT" />
+    <result column="isPermisson" property="isPermisson" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, orgId, orgName, type, code, createDate
+  </sql>
+  <sql id="condition" >
+    <if test="null!=params" />
+  </sql>
+
+  <select id="getDataAuthByUser" resultMap="DataAuthTreePo" parameterType="java.lang.Long">
+  	SELECT 
+		o2.`name`,
+		o2.`id` AS orgId,
+		o2.`parentId`,
+		da.`id` AS dataAuthId
+	FROM `user` u
+		INNER JOIN org o1 ON u.`orgId` = o1.`id` AND u.`id` = #{userId} AND o1.`status` = 1
+		INNER JOIN post_client pc ON (o1.`parentId` = pc.`clientId` AND u.`userType` = 1) OR (o1.`parentId` = pc.`postId` AND u.`userType` = 0)
+		INNER JOIN org o2 ON  (o2.`parentId` = pc.`postId` AND u.`userType` = 1) OR (o2.`parentId` = pc.`clientId` AND u.`userType` = 0) AND o2.`status` = 1
+		INNER JOIN data_auth da ON da.`orgId` = o2.`id`
+	UNION
+	SELECT 
+	DISTINCT
+		o3.`name`,
+		o3.`id` AS orgId,
+		o3.`parentId`,
+		da.`id` AS dataAuthId
+	FROM `user` u
+		INNER JOIN org o1 ON u.`orgId` = o1.`id` AND u.`id` = #{userId} AND o1.`status` = 1
+		INNER JOIN post_client pc ON (o1.`parentId` = pc.`clientId` AND u.`userType` = 1) OR (o1.`parentId` = pc.`postId` AND u.`userType` = 0)
+		INNER JOIN org o2 ON  (o2.`parentId` = pc.`postId` AND u.`userType` = 1) OR (o2.`parentId` = pc.`clientId` AND u.`userType` = 0) AND o2.`status` = 1
+		INNER JOIN data_auth da ON da.`orgId` = o2.`parentId`
+		INNER JOIN org o3 ON o3.id = o2.`parentId` AND o3.`status` = 1
+	UNION
+	SELECT
+		o.`name`,
+		o.`id` AS orgId,
+		o.`parentId`,
+		da.`id` AS dataAuthId
+	FROM org o 
+		INNER JOIN data_auth da ON da.`orgId` = o.id AND o.level IN (0,1) AND o.`status` = 1
+		UNION
+	SELECT 
+		o1.`name`,
+		o1.`id` AS orgId,
+		o1.`parentId`,
+		da.`id` AS dataAuthId
+	FROM `user` u
+		INNER JOIN org o ON u.`orgId` = o.id AND u.`id` = #{userId} AND o.`status` = 1
+		INNER JOIN org o1 ON o1.parentId = o.parentId OR o1.`id` = o.parentId AND o1.`status` = 1
+		INNER JOIN data_auth da ON da.`orgId` = o1.`id`    
+  </select>
+  
+  <select id="checkAuth" parameterType="java.util.List" resultType="java.lang.Long">
+      SELECT
+      	da.orgId
+      FROM user_data_auth uda
+      INNER JOIN data_auth da ON uda.dataAuthId = da.id
+      WHERE uda.userId = #{userId} AND dataAuthId IN (
+      <foreach collection="list" item="item" index="index" separator=",">
+      	#{item}
+      </foreach>)
+  </select>
+  
+  <select id="checkUserAuth" resultType="java.lang.Integer" parameterType="map" flushCache="false" useCache="true" >
+	SELECT 
+ 		a.c + b.c
+	FROM
+	(
+	SELECT 
+		COUNT(1) AS c
+		FROM `user` u
+		INNER JOIN org o1 ON u.`orgId` = o1.`id` AND u.`id` = #{userId} AND o1.`status` = 1
+		INNER JOIN post_client pc ON (o1.`parentId` = pc.`clientId` AND u.`userType` = 1) OR (o1.`parentId` = pc.`postId` AND u.`userType` = 0)
+		INNER JOIN org o2 ON  (o2.`parentId` = pc.`postId` AND u.`userType` = 1) OR (o2.`parentId` = pc.`clientId` AND u.`userType` = 0) AND o2.`status` = 1
+		INNER JOIN data_auth da ON da.`orgId` = o2.`id` AND da.`id` = #{dataAuthId}
+	) a,	
+	(SELECT 
+		COUNT(1) AS c	
+	FROM `user` u
+	INNER JOIN org o1 ON u.`orgId` = o1.`id` AND u.`id` = #{userId} AND o1.`status` = 1
+	INNER JOIN org o2 ON o1.`parentId` = o2.`parentId` AND o2.`status` = 1
+	INNER JOIN data_auth da ON da.`orgId` = o2.`id` AND da.`id` = #{dataAuthId}) b
+  </select>
+  <delete id="deleteByOrgId" parameterType="java.lang.Long" flushCache="true" >
+    DELETE FROM data_auth
+    WHERE orgId = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByOrgPid" parameterType="java.lang.Long" flushCache="true" >
+    DELETE
+	FROM
+		data_auth
+	WHERE
+		orgId IN (
+			SELECT
+				id
+			FROM
+				org
+			WHERE
+				parentId = #{id,jdbcType=BIGINT}
+		)
+  </delete>
+  
+  <select id="queryUserAuthBM" resultType="java.lang.Long" useCache="true">
+  	select da.orgId from user_data_auth uda
+	inner join data_auth da on (uda.dataAuthId = da.id and uda.userId = #{userId} and da.type = #{type})
+	<if test="jgOrgId != null">
+		inner join org o on (da.orgId = o.id and o.parentId = #{jgOrgId})
+	</if>
+  </select>
+  
+  <select id="getUserBMAuth" resultType="java.lang.Long" parameterType="java.lang.Long">
+      SELECT 
+      	o.id
+      FROM user_data_auth uda
+      INNER JOIN user u ON uda.userId = u.id AND u.id = #{userId}
+      INNER JOIN data_auth da ON da.id = uda.dataAuthId
+      INNER JOIN org o ON da.orgId = o.id AND u.userType = o.type AND o.level = 3 AND o.`status` = 1
+  </select>
+  <insert id="insertSel" parameterType="com.xipin.est.db.bean.DataAuthBean" flushCache="true" useGeneratedKeys="true" keyProperty="id" >
+    INSERT INTO data_auth
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="orgId != null" >
+        orgId,
+      </if>
+      <if test="orgName != null" >
+        orgName,
+      </if>
+      <if test="type != null" >
+        type,
+      </if>
+      <if test="code != null" >
+        code,
+      </if>
+      <if test="createDate != null" >
+        createDate,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="orgId != null" >
+        #{orgId,jdbcType=BIGINT},
+      </if>
+      <if test="orgName != null" >
+        #{orgName,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=TINYINT},
+      </if>
+      <if test="code != null" >
+        #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null" >
+        #{createDate,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+</mapper>

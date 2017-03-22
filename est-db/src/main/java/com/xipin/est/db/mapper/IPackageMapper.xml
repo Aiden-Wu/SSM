@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xipin.est.db.dao.IPackageDao">
+
+	<insert id="insertPackageBatch" parameterType="java.util.List" flushCache="true">
+		INSERT INTO package(
+			packageNo,dispatchType,estimatePackageNum,actualPackageNum,estimatePackageWeight,
+			actualPackageWeight,inputDate,errorValue,remark,dispatchNo,
+			countryCode,addWho,addDate,serviceType,customerName,
+			customerNo,cn35,updateDate,postoffice,postofficeEnName,sealNo
+		)
+		VALUES
+		<foreach collection="list" item="item" index="index" separator=",">
+			(
+			#{item.packageNo},#{item.dispatchType},#{item.estimatePackageNum},#{item.actualPackageNum},#{item.estimatePackageWeight},
+			#{item.actualPackageWeight},#{item.inputDate},#{item.errorValue},#{item.remark},#{item.dispatchNo},
+			#{item.countryCode},#{item.addWho},#{item.addDate},#{item.serviceType},#{item.customerName},
+			#{item.customerNo},#{item.cn35},#{item.addDate},#{item.postoffice},#{item.postofficeEnName},#{item.sealNo}
+			)
+		
+		</foreach>
+	</insert>
+<!-- 	<insert id="insertPackageBatch" parameterType="java.util.List" flushCache="true">
+		INSERT INTO package(
+			packageNo,dispatchType,estimatePackageNum,actualPackageNum,estimatePackageWeight,
+			actualPackageWeight,inputDate,errorValue,remark,dispatchNo,
+			countryCode,addWho,addDate,serviceType,customerName,
+			customerNo,cn35
+		)
+		VALUES
+		<foreach collection="list" item="item" index="index" separator=",">
+			(
+			#{item.packageNo},#{item.dispatchType},#{item.estimatePackageNum},#{item.actualPackageNum},#{item.estimatePackageWeight},
+			#{item.actualPackageWeight},#{item.inputDate},#{item.errorValue},#{item.remark},#{item.dispatchNo},
+			#{item.countryCode},#{item.addWho},#{item.addDate},#{item.serviceType},#{item.customerName},
+			#{item.customerNo},#{item.cn35}
+			)
+		
+		</foreach>
+	</insert> -->
+	
+	<delete id="deletePackageByDispatchNo" parameterType="java.util.List">
+		DELETE FROM package
+		WHERE dispatchNo IN
+		<foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<resultMap type="com.xipin.est.db.po.post.PackageListPo" id="packageMap">
+		<result column="packageNo" property="packageNo" jdbcType="VARCHAR"/>
+		<result column="cn35" property="cn35" jdbcType="VARCHAR"/>
+		<result column="cn38" property="cn38" jdbcType="VARCHAR"/>
+		<result column="dispatchType" property="dispatchType" jdbcType="VARCHAR"/>
+		<result column="estimatePackageNum" property="estimatePackageNum" jdbcType="DECIMAL"/>
+		<result column="actualPackageNum" property="actualPackageNum" jdbcType="DECIMAL"/>
+		<result column="estimatePackageWeight" property="estimatePackageWeight" jdbcType="DECIMAL"/>
+		<result column="actualPackageWeight" property="actualPackageWeight" jdbcType="DECIMAL"/>
+		<result column="errorValue" property="errorValue" jdbcType="DECIMAL"/>
+		<result column="numErrorValue" property="numErrorValue" jdbcType="DECIMAL"/>
+		<result column="remark" property="remark" jdbcType="VARCHAR"/>
+		<result column="countryCode" property="countryCode" jdbcType="VARCHAR"/>
+		<result column="postofficeEnName" property="postofficeEnName" jdbcType="VARCHAR"/>
+	</resultMap>
+	
+	<sql id="condition">
+		<if test="dispatchNo != null and dispatchNo != ''">
+			dispatchNo = #{dispatchNo, jdbcType=VARCHAR} and
+		</if>
+		<if test="CN35 != null and CN35 != ''">
+			CN35 = #{CN35, jdbcType=VARCHAR} and
+		</if>
+		<if test="postofficeEnName != null and postofficeEnName != '' ">
+			postofficeEnName = #{postofficeEnName, jdbcType=VARCHAR} and
+		</if>
+	</sql>
+	
+	<select id="queryPackageListByParam" resultMap="packageMap" parameterType="com.xipin.est.db.bean.PackageListBean" useCache="true" flushCache="false">
+		select packageNo, cn35, cn38, dispatchType, estimatePackageNum, actualPackageNum, estimatePackageWeight, actualPackageWeight, errorValue, remark, countryCode, postofficeEnName
+		from package
+		<where>
+			<trim suffixOverrides=" and">
+				<include refid="condition"/>
+				<if test="from &gt; 1">
+					actualPackageNum &gt; 0 and actualPackageWeight &gt; 0 and
+				</if>
+			</trim>
+		</where>
+		<if test="beginIndex != null and pageSize != null">
+			limit #{beginIndex}, #{pageSize}
+		</if>
+	</select>
+	
+	<select id="queryPackageListByParamToMap" resultMap="packageMap" parameterType="com.xipin.est.db.bean.PackageListBean" useCache="true" flushCache="false">
+		select packageNo, cn35, cn38, dispatchType, estimatePackageNum, actualPackageNum, estimatePackageWeight, actualPackageWeight, errorValue, remark, countryCode, postofficeEnName
+		from package
+		<where>
+			<trim suffixOverrides=" and">
+				<include refid="condition"/>
+			</trim>
+		</where>
+		<if test="beginIndex != null and pageSize != null">
+			limit #{beginIndex}, #{pageSize}
+		</if>
+	</select>
+	
+	<select id="queryPackageCount" resultType="int" parameterType="com.xipin.est.db.bean.PackageListBean" useCache="true" flushCache="false">
+		select count(*)
+		from package
+		<where>
+			<trim suffixOverrides=" and">
+				<include refid="condition"/>
+			</trim>
+		</where>
+	</select>
+	
+	
+	<!-- <select id="queryPackageNumByDispatchNo" resultType="int" parameterType="String" useCache="true" flushCache="false">
+		SELECT COUNT(*)
+		FROM package
+		WHERE dispatchNo = #{dispatchNo, jdbcType=VARCHAR}
+	</select> -->
+	
+	
+	<select id="queryPackageListByDispatchNo" resultMap="packageMap" parameterType="String" useCache="true" flushCache="false">
+		select packageNo, cn35, cn38, dispatchType, estimatePackageNum, actualPackageNum, estimatePackageWeight, actualPackageWeight, 
+		errorValue, remark, actualPackageNum-estimatePackageNum as numErrorValue, postofficeEnName
+		from package
+		where dispatchNo = #{dispatchNo, jdbcType=VARCHAR}
+	</select>
+	
+	
+	<select id="queryPackageNoByDispatchNo" parameterType="map" resultType="String" useCache="true" flushCache="false">
+		SELECT packageNo
+		FROM package
+		WHERE 
+			dispatchNo = #{dispatchNo, jdbcType=VARCHAR}
+		AND postofficeEnName = #{postofficeEnName, jdbcType=VARCHAR}
+	</select>
+	
+	<select id="queryPackageNoListByDispatchNo" parameterType="com.xipin.est.db.bean.PackageUpdateBean" resultType="String">
+		SELECT packageNo
+		FROM package
+		WHERE 
+			dispatchNo = #{dispatchNo, jdbcType=VARCHAR}
+		AND postofficeEnName = #{postofficeEnName, jdbcType=VARCHAR}
+	</select>
+	
+	<select id="querySealNoByDispatchNo" parameterType="map" resultType="String" useCache="true" flushCache="false">
+		SELECT sealNo
+		FROM package
+		WHERE 
+			dispatchNo = #{dispatchNo, jdbcType=VARCHAR}
+		AND postofficeEnName = #{postofficeEnName, jdbcType=VARCHAR}
+		AND sealNo != ''
+		AND sealNo IS NOT NULL
+	</select>
+	
+	<select id="querySealNoListByDispatchNo" parameterType="com.xipin.est.db.bean.PackageUpdateBean" resultType="String">
+		SELECT sealNo
+		FROM package
+		WHERE 
+			dispatchNo = #{dispatchNo, jdbcType=VARCHAR}
+		AND postofficeEnName = #{postofficeEnName, jdbcType=VARCHAR}
+		AND sealNo != ''
+		AND sealNo IS NOT NULL
+	</select>
+	
+	<update id="inputWeight" parameterType="com.xipin.est.db.bean.PackageInputWeightBean" flushCache="true">
+		update package 	
+		set actualPackageNum = #{actualPackageNum, jdbcType=DECIMAL}, actualPackageWeight = #{actualPackageWeight, jdbcType=DECIMAL}, 
+		errorValue = #{errorValue, jdbcType=DECIMAL}, remark = #{remark, jdbcType=VARCHAR}
+		where packageNo = #{packageNo, jdbcType=VARCHAR} and dispatchNo = #{dispatchNo, jdbcType=VARCHAR} and postofficeEnName = #{postofficeEnName}
+	</update>
+	
+	
+	<!-- <update id="updatePackageInfo" parameterType="com.xipin.est.db.bean.PackageUpdateBean" flushCache="true">
+		UPDATE package
+		SET 
+			cn35 = #{cn35,jdbcType=VARCHAR},
+			countryCode = #{countryCode,jdbcType=VARCHAR},
+			dispatchType = #{dispatchType,jdbcType=VARCHAR}
+		WHERE packageNo = #{packageNo, jdbcType=VARCHAR} AND dispatchNo = #{dispatchNo, jdbcType=VARCHAR}
+	</update> -->
+	
+	<update id="updatePackageCn35" parameterType="com.xipin.est.db.bean.PackageUpdateBean" flushCache="true">
+		UPDATE package
+		SET cn35 = #{cn35,jdbcType=VARCHAR}
+		WHERE 
+			packageNo = #{packageNo, jdbcType=VARCHAR} 
+		AND dispatchNo = #{dispatchNo, jdbcType=VARCHAR}
+		AND postofficeEnName = #{postofficeEnName, jdbcType=VARCHAR}
+	</update>
+	
+	<select id="queryPackageInfoForCn35" parameterType="com.xipin.est.db.bean.UpdateDetailListBean" resultType="int">
+		SELECT count(*) FROM package
+		WHERE 
+			dispatchNo = #{dispatchNo, jdbcType=VARCHAR} 
+		AND ( cn35 = '' OR cn35 is null )
+		AND postofficeEnName = #{postofficeEnName, jdbcType=VARCHAR}
+	</select>
+	
+	<select id="queryPackageCn35Num" parameterType="com.xipin.est.db.bean.PackageUpdateBean" resultType="int">
+		SELECT COUNT(*) 
+		FROM package
+		WHERE 
+			dispatchNo = #{dispatchNo, jdbcType=VARCHAR} 
+		AND cn35 = #{cn35}
+		AND packageNo != #{packageNo, jdbcType=VARCHAR}
+		AND postofficeEnName = #{postofficeEnName, jdbcType=VARCHAR}
+	</select>
+	
+	<select id="queryPackageInfo" parameterType="com.xipin.est.db.bean.PackageUpdateBean" resultMap="packageMap">
+		SELECT packageNo, cn35, cn38, dispatchType, estimatePackageNum, actualPackageNum, 
+				estimatePackageWeight, actualPackageWeight, errorValue, remark, countryCode, postofficeEnName
+		FROM package
+		WHERE 
+			dispatchNo = #{dispatchNo, jdbcType=VARCHAR} 
+		AND packageNo = #{packageNo, jdbcType=VARCHAR}
+		AND postofficeEnName = #{postofficeEnName, jdbcType=VARCHAR}
+	</select>
+	
+	<update id="inputCN35" parameterType="com.xipin.est.db.bean.PackageBean" flushCache="true">
+		update package
+		set cn35 = #{cn35}
+		where dispatchNo = #{dispatchNo} and packageNo = #{packageNo} and postofficeEnName = #{postofficeEnName}
+	</update>
+	
+	<update id="inputCN38" parameterType="com.xipin.est.db.bean.PackageBean" flushCache="true">
+		update package
+		set cn38 = #{cn38}
+		where dispatchNo = #{dispatchNo} and postofficeEnName = #{postofficeEnName} and countryCode = #{countryCode}
+	</update>
+	
+</mapper>
